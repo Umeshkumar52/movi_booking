@@ -42,10 +42,12 @@ export default function MovieDetails() {
     }
   };
   return (
-    <div className="movie-page">
+    <div className="min-h-screen bg-gray-50 pb-20">
      <MovieHero setMovieData={setMovieData} movie={movieData}/>
       <MovieTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-      <div className="tab-content">{renderTab()}</div>
+      <div className="w-4/5 mx-auto mt-8 bg-white rounded-xl shadow-sm border border-gray-100 min-h-[400px] p-6">
+        {renderTab()}
+      </div>
     </div>
   );
 }

@@ -21,44 +21,97 @@ export default function MovieHero({movie,setMovieData}) {
   },[movie])
  
   return (
-   <>
-    {
-      updateOverViewModal&&<EditBasicInfo setMovieData={setMovieData}  data={data} setUpdateOverViewModal={setUpdateOverViewModal}/>
-     }
-
-   <div className="hero flex bg-gray-100">
-      <div className="hero-left flex items-center gap-4">
-        <img
-        
-         src={data?.poster||"/puspa.jpeg"}
-          alt="poster"
-          className="poster hover:scale-104"
+    <>
+      {updateOverViewModal && (
+        <EditBasicInfo
+          setMovieData={setMovieData}
+          data={data}
+          setUpdateOverViewModal={setUpdateOverViewModal}
         />
+      )}
 
-        <div className="hero-info">
-          <h1>{data?.title}</h1>
-          <p className="type">{data?.title||"Movie"}</p>
+      <div className="relative w-full h-[550px] bg-gray-900 text-white overflow-hidden shadow-lg">
+        {/* Backdrop Image with Blur and Overlay */}
+        <div className="absolute inset-0">
+          <img
+            src={data?.poster || "/puspa.jpeg"}
+            alt="backdrop"
+            className="w-full h-full object-cover opacity-40 blur-sm"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent" />
+        </div>
 
-          <div className="badges">
-            <span>{data?.duration||"200"} min</span>
-            <span>{data?.year||"2002"}</span>
-            <span>{data?.rating||"2"}/10</span>
-            <span>Cert: UA</span>
-            <span className="status">Status: {data?.status||"active"}</span>
+        {/* Content Container */}
+        <div className="relative z-10 w-4/5 mx-auto h-full flex items-center gap-10 p-6">
+          {/* Poster Image */}
+          <div className="flex-shrink-0">
+            <img
+              src={data?.poster || "/puspa.jpeg"}
+              alt={data?.title}
+              className="w-[300px] h-[450px] rounded-xl shadow-2xl object-cover border-4 border-white/10"
+            />
+          </div>
+
+          {/* Movie Details */}
+          <div className="flex-1 flex flex-col justify-center">
+            <h1 className="text-6xl font-extrabold mb-2 tracking-tight drop-shadow-md">
+              {data?.title || "Movie Title"}
+            </h1>
+            <p className="text-xl text-gray-300 font-light mb-6">
+              {data?.main_title || data?.title || "Subtitle / Original Title"}
+            </p>
+
+            {/* Metadata Badges */}
+            <div className="flex items-center gap-4 mb-8 text-sm font-medium">
+                <span className="bg-yellow-500 text-black px-2 py-0.5 rounded text-xs font-bold">IMDb {data?.rating || "N/A"}</span>
+              <span className="px-3 py-1 bg-white/10 rounded-full backdrop-blur-md border border-white/20">
+                {data?.year || "Year"}
+              </span>
+              <span className="px-3 py-1 bg-white/10 rounded-full backdrop-blur-md border border-white/20">
+                {data?.duration ? `${data.duration} min` : "Duration"}
+              </span>
+               <span className="px-3 py-1 bg-white/10 rounded-full backdrop-blur-md border border-white/20">
+                {data?.language || "Language"}
+              </span>
+              <span className="px-3 py-1 bg-white/10 rounded-full backdrop-blur-md border border-white/20 uppercase">
+                {data?.status || "Status"}
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 mt-4">
+              <button
+                onClick={() => setUpdateOverViewModal(data)}
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg transition-all transform hover:scale-105 flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                Edit Movie
+              </button>
+
+              <button
+                onClick={postDeleteHandler}
+                className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-lg transition-all transform hover:scale-105 flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Delete
+              </button>
+               <button
+                onClick={() => navigate(-1)}
+                className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg shadow-md transition-all flex items-center gap-2"
+              >
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                </svg>
+                Back
+              </button>
+            </div>
           </div>
         </div>
       </div>
-
-      <div className="hero-right">
-        <button onClick={()=>setUpdateOverViewModal(data)} className="btn edit hover:scale-105">Edit {data?.title}</button>
-        {/* <button className="btn boost">Boost</button> */}
-        <div className="sub-btns flex gap-12">
-          <button onClick={()=>navigate(-1)} className="btn back px-2 ">Back</button>
-          <button onClick={postDeleteHandler} className="btn delete px-2 hover:bg-red-500">Delete</button>
-        </div>
-      </div>
-    </div>
-    
-   </>
+    </>
   );
 }

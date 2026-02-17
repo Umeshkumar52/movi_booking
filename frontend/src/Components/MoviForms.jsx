@@ -84,7 +84,7 @@ export const EditBasicInfo = ({
   }, []);
   console.log(formData, data);
   return (
-    <div className="fixed inset-0 z-50 bg-white/80 flex items-center justify-center">
+    <div className="fixed inset-0 z-[1000] bg-white/80 flex items-center justify-center">
       {/* Scroll wrapper with top/bottom space */}
       <div className="hide-scrollbar w-full h-full overflow-y-auto py-16 px-4">
         <div className="flex justify-center">
@@ -321,7 +321,7 @@ export const UpdateMovieMedia = ({
   };
 
   return (
-    <div className="fixed top-0 h-screen w-screen z-50 bg-white/80 flex justify-center items-center  ">
+    <div className="fixed top-0 h-screen w-screen z-[1000] bg-white/80 flex justify-center items-center  ">
       <div className="absolute z-50 p-10 flex flex-col items-center justify-center">
         <form
           onSubmit={handleSubmit}
@@ -469,7 +469,7 @@ export const UpdateTrailer = ({
   };
 
   return (
-    <div className="fixed top-0 h-screen w-screen z-50 bg-white/80 flex justify-center items-center  ">
+    <div className="fixed top-0 h-screen w-screen z-[1000] bg-white/80 flex justify-center items-center  ">
       <div className="absolute z-50 p-10 flex flex-col items-center justify-center">
         <form
           onSubmit={handleSubmit}
@@ -603,7 +603,7 @@ export const AddCrew = ({ setCrewData, movie_id, setaddCrewModal }) => {
   };
 
   return (
-    <div className="fixed top-0 w-screen min-h-screen bg-white/80 flex items-center justify-center">
+    <div className="fixed top-0 z-[1000] w-screen min-h-screen bg-white/80 flex items-center justify-center">
       <form
         onSubmit={handleSubmit}
         className="w-[600px] bg-gray-100 rounded-xl shadow-lg p-8"
@@ -744,7 +744,7 @@ export const AddCast = ({ setActor, movie_id, setAddCastModal }) => {
   };
 
   return (
-    <div className="fixed top-0 w-screen min-h-screen bg-white/80 flex items-center justify-center">
+    <div className="fixed top-0 z-[1000] w-screen min-h-screen bg-white/80 flex items-center justify-center">
       <form className="w-[600px] bg-gray-100 rounded-xl shadow-lg p-8">
         <h2 className="text-2xl font-semibold mb-8">Add New Cast</h2>
 
@@ -895,7 +895,7 @@ export const UpdateCrew = ({
   console.log(crew)
 
   return (
-    <div className="fixed top-0 w-screen min-h-screen bg-white/80 flex items-center justify-center">
+    <div className="fixed top-0 z-[1000] w-screen min-h-screen bg-white/80 flex items-center justify-center">
       <form
         onSubmit={handleSubmit}
         className="w-[600px] bg-gray-100 rounded-xl shadow-lg p-8"
@@ -1051,7 +1051,7 @@ export const UpdateCast = ({
   }, []);
 
   return (
-    <div className="fixed top-0 w-screen min-h-screen bg-white/80 flex items-center justify-center">
+    <div className="fixed top-0 z-[1000] w-screen min-h-screen bg-white/80 flex items-center justify-center">
       <form className="w-[600px] bg-gray-100 rounded-xl shadow-lg p-8">
         <h2 className="text-2xl font-semibold mb-8">Update Cast</h2>
 
