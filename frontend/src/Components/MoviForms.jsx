@@ -84,16 +84,16 @@ export const EditBasicInfo = ({
   }, []);
   console.log(formData, data);
   return (
-    <div className="fixed inset-0 z-[1000] bg-white/80 flex items-center justify-center">
+    <div className="fixed inset-0 z-[1000] bg-slate-950/80">
       {/* Scroll wrapper with top/bottom space */}
-      <div className="hide-scrollbar w-full h-full overflow-y-auto py-16 px-4">
-        <div className="flex justify-center">
-          <form className=" w-[700px] border-2 border-slate-300 bg-gray-100 shadow-2xl rounded-xl p-8">
+      <div className="hide-scrollbar w-full h-full overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center py-16 px-4">
+          <form className="relative w-[700px] border border-slate-700 bg-slate-900 shadow-2xl rounded-xl p-8">
             <RxCross1
-              className="absolute top-4 right-4 text-3xl hover:text-red-600 cursor-pointer"
+              className="absolute top-4 right-4 text-3xl text-slate-400 hover:text-red-500 cursor-pointer transition-colors"
               onClick={() => setUpdateOverViewModal((prev) => !prev)}
             />
-            <h2 className="text-2xl font-semibold mb-6">Edit Basic Info</h2>
+            <h2 className="text-2xl font-semibold mb-6 text-white">Edit Basic Info</h2>
 
             {/* Poster */}
             <div className="flex justify-center mb-6">
@@ -105,7 +105,7 @@ export const EditBasicInfo = ({
                     "https://via.placeholder.com/150"
                   }
                   alt="poster"
-                  className="w-40 h-56 object-cover rounded-lg"
+                  className="w-40 h-56 object-cover rounded-lg border-2 border-slate-700"
                 />
                 {/* <input
                   type="file"
@@ -122,7 +122,7 @@ export const EditBasicInfo = ({
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="input"
+                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
               >
                 <option>Movie</option>
                 <option>Series</option>
@@ -133,7 +133,7 @@ export const EditBasicInfo = ({
                 placeholder="Main Title (Optional)"
                 value={formData.main_title}
                 onChange={handleChange}
-                className="input"
+                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
               />
             </div>
 
@@ -143,7 +143,7 @@ export const EditBasicInfo = ({
               placeholder="Title"
               value={formData.title}
               onChange={handleChange}
-              className="input mb-4"
+              className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500 mb-4"
             />
 
             {/* Year + Duration */}
@@ -154,7 +154,7 @@ export const EditBasicInfo = ({
                 placeholder="Year"
                 value={formData.year}
                 onChange={handleChange}
-                className="input"
+                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
               />
               <input
                 name="duration"
@@ -162,7 +162,7 @@ export const EditBasicInfo = ({
                 placeholder="Duration (minutes)"
                 value={formData.duration}
                 onChange={handleChange}
-                className="input"
+                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
               />
             </div>
 
@@ -185,13 +185,13 @@ export const EditBasicInfo = ({
                 placeholder="Rating"
                 value={formData.rating}
                 onChange={handleChange}
-                className="input"
+                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
               />
             </div>
 
             {/* Genres */}
             <div className="mb-4">
-              <p className="mb-2 font-medium">Genres</p>
+              <p className="mb-2 font-medium text-slate-300">Genres</p>
               <div className="flex flex-wrap gap-2">
                 {genresList.map((g) => (
                   <button
@@ -200,8 +200,8 @@ export const EditBasicInfo = ({
                     onClick={() => handleToggle("genres", g)}
                     className={`px-4 py-1 rounded-full border ${
                       formData?.genres?.includes(g)
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100"
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500"
                     }`}
                   >
                     {g}
@@ -212,7 +212,7 @@ export const EditBasicInfo = ({
 
             {/* Languages */}
             <div className="mb-4">
-              <p className="mb-2 font-medium">Languages</p>
+              <p className="mb-2 font-medium text-slate-300">Languages</p>
               <div className="flex flex-wrap gap-2">
                 {languagesList.map((l) => (
                   <button
@@ -221,8 +221,8 @@ export const EditBasicInfo = ({
                     onClick={() => handleToggle("languages", l)}
                     className={`px-4 py-1 rounded-full border ${
                       formData.languages?.includes(l)
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100"
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500"
                     }`}
                   >
                     {l}
@@ -238,14 +238,14 @@ export const EditBasicInfo = ({
               placeholder="Storyline"
               value={formData.storyline}
               onChange={handleChange}
-              className="input mb-6"
+              className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500 mb-6"
             />
 
             {/* Submit */}
             <button
               onClick={handleSubmit}
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 mb-10 rounded-lg"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 mb-10 rounded-lg font-semibold transition-colors"
             >
               Save Changes
             </button>
@@ -321,17 +321,17 @@ export const UpdateMovieMedia = ({
   };
 
   return (
-    <div className="fixed top-0 h-screen w-screen z-[1000] bg-white/80 flex justify-center items-center  ">
-      <div className="absolute z-50 p-10 flex flex-col items-center justify-center">
+    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex justify-center items-center">
+      <div className="relative z-50 p-10 flex flex-col items-center justify-center">
         <form
           onSubmit={handleSubmit}
-          className="w-[650px] z-50 shadow-2xl bg-gray-100 rounded-xl  p-8"
+          className="w-[650px] z-50 shadow-2xl bg-slate-900 border border-slate-700 rounded-xl p-8"
         >
-          <h2 className="text-2xl font-semibold mb-6">Update Movie Media</h2>
+          <h2 className="text-2xl font-semibold mb-6 text-white">Update Movie Media</h2>
 
           {/* Video Preview Box */}
-          <div className="border-2 border-dashed rounded-xl p-4 mb-6">
-            <div className="bg-gray-900 z-10 rounded-lg overflow-hidden">
+          <div className="border-2 border-dashed border-slate-700 rounded-xl p-4 mb-6 bg-slate-800/50">
+            <div className="bg-black z-10 rounded-lg overflow-hidden">
               <video
                 controls
                 className="w-full  h-64 object-cover"
@@ -345,14 +345,14 @@ export const UpdateMovieMedia = ({
 
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center gap-3">
-                <div className="bg-blue-100 p-2 rounded-md">📄</div>
-                <span className="font-medium">Existing Movie</span>
+                <div className="bg-blue-500/10 p-2 rounded-md text-blue-400">📄</div>
+                <span className="font-medium text-slate-300">Existing Movie</span>
               </div>
 
               <button
                 type="button"
                 onClick={() => fileRef.current.click()}
-                className="text-blue-600 font-medium"
+                className="text-blue-400 hover:text-blue-300 font-medium"
               >
                 Change
               </button>
@@ -369,10 +369,10 @@ export const UpdateMovieMedia = ({
 
           {/* Thumbnail Upload */}
           <div className="mb-8">
-            <p className="mb-2 font-medium">Thumbnail</p>
+            <p className="mb-2 font-medium text-slate-300">Thumbnail</p>
 
             <div className="flex items-center gap-4">
-              <label className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg cursor-pointer">
+              <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
                 Browse...
                 <input
                   type="file"
@@ -382,7 +382,7 @@ export const UpdateMovieMedia = ({
                 />
               </label>
 
-              <span className="text-gray-600">{media.thumbName}</span>
+              <span className="text-slate-400">{media.thumbName}</span>
             </div>
           </div>
 
@@ -391,14 +391,14 @@ export const UpdateMovieMedia = ({
             <button
               onClick={() => setUpdateMovieMediaModal((prev) => !prev)}
               type="button"
-              className="px-5 py-2 bg-gray-200 rounded-lg"
+              className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg"
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
             >
               Update
             </button>
@@ -469,17 +469,17 @@ export const UpdateTrailer = ({
   };
 
   return (
-    <div className="fixed top-0 h-screen w-screen z-[1000] bg-white/80 flex justify-center items-center  ">
-      <div className="absolute z-50 p-10 flex flex-col items-center justify-center">
+    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex justify-center items-center">
+      <div className="relative z-50 p-10 flex flex-col items-center justify-center">
         <form
           onSubmit={handleSubmit}
-          className="w-[650px] z-50 shadow-2xl bg-gray-100 rounded-xl  p-8"
+          className="w-[650px] z-50 shadow-2xl bg-slate-900 border border-slate-700 rounded-xl p-8"
         >
-          <h2 className="text-2xl font-semibold mb-6">Update Trailer media</h2>
+          <h2 className="text-2xl font-semibold mb-6 text-white">Update Trailer media</h2>
 
           {/* Video Preview Box */}
-          <div className="border-2 border-dashed rounded-xl p-4 mb-6">
-            <div className="bg-gray-900 z-10 rounded-lg overflow-hidden">
+          <div className="border-2 border-dashed border-slate-700 rounded-xl p-4 mb-6 bg-slate-800/50">
+            <div className="bg-black z-10 rounded-lg overflow-hidden">
               <video
                 controls
                 className="w-full  h-64 object-cover"
@@ -489,14 +489,14 @@ export const UpdateTrailer = ({
 
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center gap-3">
-                <div className="bg-blue-100 p-2 rounded-md">📄</div>
-                <span className="font-medium">Existing Trailer</span>
+                <div className="bg-blue-500/10 p-2 rounded-md text-blue-400">📄</div>
+                <span className="font-medium text-slate-300">Existing Trailer</span>
               </div>
 
               <button
                 type="button"
                 onClick={() => fileRef.current.click()}
-                className="text-blue-600 font-medium"
+                className="text-blue-400 hover:text-blue-300 font-medium"
               >
                 Change
               </button>
@@ -513,10 +513,10 @@ export const UpdateTrailer = ({
 
           {/* Thumbnail Upload */}
           <div className="mb-8">
-            <p className="mb-2 font-medium">Thumbnail</p>
+            <p className="mb-2 font-medium text-slate-300">Thumbnail</p>
 
             <div className="flex items-center gap-4">
-              <label className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg cursor-pointer">
+              <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
                 Browse...
                 <input
                   type="file"
@@ -526,7 +526,7 @@ export const UpdateTrailer = ({
                 />
               </label>
 
-              <span className="text-gray-600">{media.thumbName}</span>
+              <span className="text-slate-400">{media.thumbName}</span>
             </div>
           </div>
 
@@ -535,14 +535,14 @@ export const UpdateTrailer = ({
             <button
               onClick={() => setUpdateTrailerModal((prev) => !prev)}
               type="button"
-              className="px-5 py-2 bg-gray-200 rounded-lg"
+              className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg"
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
             >
               Update
             </button>
@@ -603,42 +603,42 @@ export const AddCrew = ({ setCrewData, movie_id, setaddCrewModal }) => {
   };
 
   return (
-    <div className="fixed top-0 z-[1000] w-screen min-h-screen bg-white/80 flex items-center justify-center">
+    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex items-center justify-center">
       <form
         onSubmit={handleSubmit}
-        className="w-[600px] bg-gray-100 rounded-xl shadow-lg p-8"
+        className="w-[600px] bg-slate-900 border border-slate-700 rounded-xl shadow-lg p-8"
       >
-        <h2 className="text-2xl font-semibold mb-8">Add New Crew</h2>
+        <h2 className="text-2xl font-semibold mb-8 text-white">Add New Crew</h2>
 
         {/* Name */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">Name</label>
+          <label className="block mb-2 font-medium text-slate-300">Name</label>
           <input
             type="text"
             name="name"
             placeholder="Enter name"
             value={crew.name}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
           />
         </div>
 
         {/* Role */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">Role</label>
+          <label className="block mb-2 font-medium text-slate-300">Role</label>
           <input
             type="text"
             name="role"
             placeholder="Enter role"
             value={crew.role}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
           />
         </div>
 
         {/* Description */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">
+          <label className="block mb-2 font-medium text-slate-300">
             Description (optional, max 50 chars)
           </label>
           <textarea
@@ -646,19 +646,19 @@ export const AddCrew = ({ setCrewData, movie_id, setaddCrewModal }) => {
             placeholder="Enter description"
             value={crew.description}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
             rows="3"
           />
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             {crew.description.length}/50
           </p>
         </div>
 
         {/* Image */}
         <div className="mb-8">
-          <label className="block mb-2 font-medium">Image</label>
+          <label className="block mb-2 font-medium text-slate-300">Image</label>
           <div className="flex items-center gap-4">
-            <label className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg cursor-pointer">
+            <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
               Browse...
               <input
                 type="file"
@@ -667,7 +667,7 @@ export const AddCrew = ({ setCrewData, movie_id, setaddCrewModal }) => {
                 onChange={handleImage}
               />
             </label>
-            <span className="text-gray-600">{crew.imageName}</span>
+            <span className="text-slate-400">{crew.imageName}</span>
           </div>
         </div>
 
@@ -676,14 +676,14 @@ export const AddCrew = ({ setCrewData, movie_id, setaddCrewModal }) => {
           <button
             onClick={() => setaddCrewModal((prev) => !prev)}
             type="button"
-            className="px-5 py-2 bg-gray-200 rounded-lg"
+            className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
           >
             Cancel
           </button>
 
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
           >
             Add
           </button>
@@ -744,39 +744,39 @@ export const AddCast = ({ setActor, movie_id, setAddCastModal }) => {
   };
 
   return (
-    <div className="fixed top-0 z-[1000] w-screen min-h-screen bg-white/80 flex items-center justify-center">
-      <form className="w-[600px] bg-gray-100 rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-semibold mb-8">Add New Cast</h2>
+    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex items-center justify-center">
+      <form className="w-[600px] bg-slate-900 border border-slate-700 rounded-xl shadow-lg p-8">
+        <h2 className="text-2xl font-semibold mb-8 text-white">Add New Cast</h2>
 
         {/* Name */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">Name</label>
+          <label className="block mb-2 font-medium text-slate-300">Name</label>
           <input
             type="text"
             name="name"
             placeholder="Enter name"
             value={crew.name}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
           />
         </div>
 
         {/* Role */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">Role</label>
+          <label className="block mb-2 font-medium text-slate-300">Role</label>
           <input
             type="text"
             name="role"
             placeholder="Enter role"
             value={crew.role}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
           />
         </div>
 
         {/* Description */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">
+          <label className="block mb-2 font-medium text-slate-300">
             Description (optional, max 50 chars)
           </label>
           <textarea
@@ -784,19 +784,19 @@ export const AddCast = ({ setActor, movie_id, setAddCastModal }) => {
             placeholder="Enter description"
             value={crew.description}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
             rows="3"
           />
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             {crew.description.length}/50
           </p>
         </div>
 
         {/* Image */}
         <div className="mb-8">
-          <label className="block mb-2 font-medium">Image</label>
+          <label className="block mb-2 font-medium text-slate-300">Image</label>
           <div className="flex items-center gap-4">
-            <label className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg cursor-pointer">
+            <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
               Browse...
               <input
                 type="file"
@@ -805,7 +805,7 @@ export const AddCast = ({ setActor, movie_id, setAddCastModal }) => {
                 onChange={handleImage}
               />
             </label>
-            <span className="text-gray-600">{crew.imageName}</span>
+            <span className="text-slate-400">{crew.imageName}</span>
           </div>
         </div>
 
@@ -814,7 +814,7 @@ export const AddCast = ({ setActor, movie_id, setAddCastModal }) => {
           <button
             onClick={() => setAddCastModal((prev) => !prev)}
             type="button"
-            className="px-5 py-2 bg-gray-200 rounded-lg"
+            className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
           >
             Cancel
           </button>
@@ -822,7 +822,7 @@ export const AddCast = ({ setActor, movie_id, setAddCastModal }) => {
           <button
             onClick={handleSubmit}
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
           >
             Add
           </button>
@@ -895,42 +895,42 @@ export const UpdateCrew = ({
   console.log(crew)
 
   return (
-    <div className="fixed top-0 z-[1000] w-screen min-h-screen bg-white/80 flex items-center justify-center">
+    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex items-center justify-center">
       <form
         onSubmit={handleSubmit}
-        className="w-[600px] bg-gray-100 rounded-xl shadow-lg p-8"
+        className="w-[600px] bg-slate-900 border border-slate-700 rounded-xl shadow-lg p-8"
       >
-        <h2 className="text-2xl font-semibold mb-8">Update Crew</h2>
+        <h2 className="text-2xl font-semibold mb-8 text-white">Update Crew</h2>
 
         {/* Name */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">Name</label>
+          <label className="block mb-2 font-medium text-slate-300">Name</label>
           <input
             type="text"
             name="name"
             placeholder="Enter name"
             value={crew.name}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
           />
         </div>
 
         {/* Role */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">Role</label>
+          <label className="block mb-2 font-medium text-slate-300">Role</label>
           <input
             type="text"
             name="role"
             placeholder="Enter role"
             value={crew.role}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
           />
         </div>
 
         {/* Description */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">
+          <label className="block mb-2 font-medium text-slate-300">
             Description (optional, max 50 chars)
           </label>
           <textarea
@@ -938,19 +938,19 @@ export const UpdateCrew = ({
             placeholder="Enter description"
             value={crew.description}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
             rows="3"
           />
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             {crew.description.length}/50
           </p>
         </div>
 
         {/* Image */}
         <div className="mb-8">
-          <label className="block mb-2 font-medium">Image</label>
+          <label className="block mb-2 font-medium text-slate-300">Image</label>
           <div className="flex items-center gap-4">
-            <label className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg cursor-pointer">
+            <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
               Browse...
               <input
                 type="file"
@@ -959,7 +959,7 @@ export const UpdateCrew = ({
                 onChange={handleImage}
               />
             </label>
-            <span className="text-gray-600">{crew.imageName}</span>
+            <span className="text-slate-400">{crew.imageName}</span>
           </div>
         </div>
 
@@ -968,14 +968,14 @@ export const UpdateCrew = ({
           <button
             onClick={() => setUpdateCrewModal((prev) => !prev)}
             type="button"
-            className="px-5 py-2 bg-gray-200 rounded-lg"
+            className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
           >
             Cancel
           </button>
 
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
           >
             Update
           </button>
@@ -1051,39 +1051,39 @@ export const UpdateCast = ({
   }, []);
 
   return (
-    <div className="fixed top-0 z-[1000] w-screen min-h-screen bg-white/80 flex items-center justify-center">
-      <form className="w-[600px] bg-gray-100 rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-semibold mb-8">Update Cast</h2>
+    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex items-center justify-center">
+      <form className="w-[600px] bg-slate-900 border border-slate-700 rounded-xl shadow-lg p-8">
+        <h2 className="text-2xl font-semibold mb-8 text-white">Update Cast</h2>
 
         {/* Name */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">Name</label>
+          <label className="block mb-2 font-medium text-slate-300">Name</label>
           <input
             type="text"
             name="name"
             placeholder="Enter name"
             value={crew.name}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
           />
         </div>
 
         {/* Role */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">Role</label>
+          <label className="block mb-2 font-medium text-slate-300">Role</label>
           <input
             type="text"
             name="role"
             placeholder="Enter role"
             value={crew.role}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
           />
         </div>
 
         {/* Description */}
         <div className="mb-5">
-          <label className="block mb-2 font-medium">
+          <label className="block mb-2 font-medium text-slate-300">
             Description (optional, max 50 chars)
           </label>
           <textarea
@@ -1091,19 +1091,19 @@ export const UpdateCast = ({
             placeholder="Enter description"
             value={crew.description}
             onChange={handleChange}
-            className="input"
+            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
             rows="3"
           />
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             {crew.description.length}/50
           </p>
         </div>
 
         {/* Image */}
         <div className="mb-8">
-          <label className="block mb-2 font-medium">Image</label>
+          <label className="block mb-2 font-medium text-slate-300">Image</label>
           <div className="flex items-center gap-4">
-            <label className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg cursor-pointer">
+            <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
               Browse...
               <input
                 type="file"
@@ -1112,7 +1112,7 @@ export const UpdateCast = ({
                 onChange={handleImage}
               />
             </label>
-            <span className="text-gray-600">{crew.imageName}</span>
+            <span className="text-slate-400">{crew.imageName}</span>
           </div>
         </div>
 
@@ -1121,7 +1121,7 @@ export const UpdateCast = ({
           <button
             onClick={() => setUpddateCastModal(null)}
             type="button"
-            className="px-5 py-2 bg-gray-200 rounded-lg"
+            className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
           >
             Cancel
           </button>
@@ -1129,7 +1129,7 @@ export const UpdateCast = ({
           <button
             onClick={handleSubmit}
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
           >
             Update
           </button>

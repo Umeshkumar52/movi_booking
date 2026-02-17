@@ -77,28 +77,27 @@ async function logout() {
   }, [page]);
 
   return (
-    <div className="flex flex-col">
-      <header className="bg-gray-100 px-12 py-3 flex justify-between items-center">
+    <div className="flex flex-col min-h-screen bg-slate-950">
+      <header className="bg-slate-900 border-b border-slate-800 px-12 py-3 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          {/* <img className="size-12 rounded-full border-2" src="#" alt="logo" /> */}
           <h3 className="text-2xl bg-gradient-to-r from-red-600 to-indigo-600 bg-clip-text text-transparent font-bold">Admin dashboard</h3>
         </div>
         <div className="flex items-center gap-16">
           <input
             onChange={(event) => setSearchQuery(event.target.value)}
             type="search"
-            className="border-2 focus:outline-none rounded-lg w-120 p-3"
+            className="bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-indigo-500 rounded-lg w-120 p-3 placeholder-slate-400"
             placeholder="Search movies..."
           />
           <button
             onClick={() => setAddNewMoviToggle((prev) => !prev)}
-            className="px-8 py-3 bg-indigo-700 text-white rounded-lg"
+            className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
           >
             Add New
           </button>
           <button
             onClick={logout}
-            className="px-8 py-3 bg-red-600 text-white rounded-lg"
+            className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
           >
             logout
           </button>
@@ -112,7 +111,6 @@ async function logout() {
           />
         ))}
       </main>
-      div
 
       {/* movies edit modal */}
 
@@ -138,7 +136,7 @@ async function logout() {
           <button
             disabled={page === 1}
             onClick={() => setPage((prev) => (prev > 1 ? prev - 1 : prev))}
-            className=" rounded-lg px-4 disabled:text-slate-300 disabled:bg-slate-100 border-2 border-slate-200 bg-slate-300 flex justify-center items-center text-2xl  p-2"
+            className="rounded-lg px-4 disabled:text-slate-600 disabled:bg-slate-900/50 border border-slate-700 bg-slate-800 text-white hover:bg-slate-700 transition-colors flex justify-center items-center text-xl p-2"
           >
             Prev
           </button>
@@ -146,7 +144,9 @@ async function logout() {
             <button
               onClick={() => setPage(index + 1)}
               key={index}
-              className={`${page == index + 1 && "bg-slate-400"} size-8 rounded-lg border-2 border-slate-200 bg-slate-300 flex justify-center items-center text-2xl  p-2`}
+              className={`${
+                page == index + 1 ? "bg-indigo-600 border-indigo-600 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
+              } size-10 rounded-lg border flex justify-center items-center text-lg transition-colors`}
             >
               {index + 1}
             </button>
@@ -156,7 +156,7 @@ async function logout() {
             onClick={() =>
               setPage((prev) => (prev < totalDocuments ? prev + 1 : prev))
             }
-            className=" rounded-lg border-2 disabled:bg-slate-100 disabled:text-slate-300 px-4 border-slate-200 bg-slate-300 flex justify-center items-center text-2xl  p-2"
+            className="rounded-lg px-4 disabled:text-slate-600 disabled:bg-slate-900/50 border border-slate-700 bg-slate-800 text-white hover:bg-slate-700 transition-colors flex justify-center items-center text-xl p-2"
           >
             Next
           </button>

@@ -37,10 +37,10 @@ export default function Crew({movie_id}) {
     <div className="w-full">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Crew ({crew.length})</h2>
+          <h2 className="text-2xl font-bold text-white">Crew ({crew.length})</h2>
           <button
             onClick={() => setaddCrewModal((prev) => !prev)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition-all"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition-all shadow-blue-900/20"
           >
             <Plus size={18} />
             Add Crew
@@ -52,40 +52,40 @@ export default function Crew({movie_id}) {
           {crew.map((crew) => (
             <div
               key={crew._id}
-              className="group bg-white border border-gray-100 rounded-xl p-4 flex gap-4 hover:shadow-md transition-all items-start relative overflow-hidden"
+              className="group bg-slate-900 border border-slate-800 rounded-xl p-4 flex gap-4 hover:shadow-lg hover:shadow-black/50 transition-all items-start relative overflow-hidden hover:border-slate-700"
             >
               {/* Image */}
               <img
                 src={crew?.img || "https://via.placeholder.com/150"}
                 alt={crew?.name}
-                className="w-20 h-20 rounded-full object-cover border-2 border-gray-100 flex-shrink-0"
+                className="w-20 h-20 rounded-full object-cover border-2 border-slate-800 flex-shrink-0"
               />
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-gray-900 truncate">
+                <h3 className="font-bold text-slate-100 truncate">
                   {crew?.name || "Unknown Name"}
                 </h3>
-                <p className="text-blue-600 text-sm font-medium truncate mb-1">
+                <p className="text-blue-500 text-sm font-medium truncate mb-1">
                   {crew?.role || "Role"}
                 </p>
-                <p className="text-gray-500 text-xs line-clamp-2">
+                <p className="text-slate-400 text-xs line-clamp-2">
                   {crew?.description || "No description available."}
                 </p>
               </div>
 
-               {/* Actions (Visible on Hover) */}
-              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 p-1 rounded-lg shadow-sm">
+              {/* Actions (Visible on Hover) */}
+              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 p-1 rounded-lg shadow-sm border border-slate-700">
                 <button
                   onClick={() => setUpdateCrewModal(crew)}
-                  className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50"
+                  className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-500/10"
                    title="Edit"
                 >
                   <Pencil size={16} />
                 </button>
                 <button
                   onClick={() => deleteHandler(crew._id)}
-                  className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                  className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-500/10"
                    title="Delete"
                 >
                   <Trash2 size={16} />
@@ -94,7 +94,7 @@ export default function Crew({movie_id}) {
             </div>
           ))}
            {crew.length === 0 && (
-             <div className="col-span-full text-center py-10 text-gray-400">
+             <div className="col-span-full text-center py-10 text-slate-500">
                 No crew members added yet.
              </div>
           )}
