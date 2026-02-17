@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { EditBasicInfo } from "../MoviForms";
 
-export default function Overview({data}) {
+export default function Overview({data, setMovieData}) {
   const[updateOverViewModal,setUpdateOverViewModal]=useState(null)
   return (
    <>
    {/* update overview data */}
      {
-      updateOverViewModal&&<EditBasicInfo data={data}  setUpdateOverViewModal={setUpdateOverViewModal}/>
+      updateOverViewModal&&<EditBasicInfo data={data} setMovieData={setMovieData} setUpdateOverViewModal={setUpdateOverViewModal}/>
      }
 
     <div className="min-h-screen z-0 bg-gray-50 p-6">

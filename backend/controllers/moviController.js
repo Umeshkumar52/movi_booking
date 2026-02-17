@@ -150,17 +150,26 @@ export const bookeMovi = async (req, res) => {
 
 export const create = async (req, res) => {
   try {
-    const poster = `${process.env.UPLOAD_PATH}${req.files.poster?.[0]?.filename}`;
-    const media = `${process.env.UPLOAD_PATH}${req.files.media?.[0]?.filename}`;
-    const trailerPoster = `${process.env.UPLOAD_PATH}${req.files.trailerPoster?.[0]?.filename}`;
-    const trailerMedia = `${process.env.UPLOAD_PATH}${req.files.trailerMedia?.[0]?.filename}`;
     if (req.files) {
+      const poster = req.files.poster?.[0]?.filename
+        ? `${process.env.UPLOAD_PATH}${req.files.poster[0].filename}`
+        : "";
+      const media = req.files.media?.[0]?.filename
+        ? `${process.env.UPLOAD_PATH}${req.files.media[0].filename}`
+        : "";
+      const trailerPoster = req.files.trailerPoster?.[0]?.filename
+        ? `${process.env.UPLOAD_PATH}${req.files.trailerPoster[0].filename}`
+        : "";
+      const trailerMedia = req.files.trailerMedia?.[0]?.filename
+        ? `${process.env.UPLOAD_PATH}${req.files.trailerMedia[0].filename}`
+        : "";
+
       const response = await movies.create({
         ...req.body,
         media,
         poster,
-        "trailer.poster": trailerPoster ?? "",
-        "trailer.media": trailerMedia ?? "",
+        "trailer.poster": trailerPoster,
+        "trailer.media": trailerMedia,
       });
 
       // create seats structure
@@ -280,18 +289,24 @@ export const updateMovieTrailer = async (req, res) => {
     const trailerPoster = req.files.trailerPoster?.[0]?.filename;
     const trailerMedia = req.files.trailerMedia?.[0]?.filename;
     if (trailerPoster) {
-      bodyData["poster"] =`${process.env.UPLOAD_PATH}/${trailerPoster}`;
+      bodyData["trailer.poster"] = `${process.env.UPLOAD_PATH}${trailerPoster}`;
     }
     if (trailerMedia) {
-      bodyData["media"] =` ${process.env.UPLOAD_PATH}/${trailerMedia}`;
+      bodyData["trailer.media"] = `${process.env.UPLOAD_PATH}${trailerMedia}`;
     }
-    const data = await movies.findByIdAndUpdate(movie_id, {
-      $set: { trailer: { ...bodyData } },
-    },{new:true});
+    const data = await movies.findByIdAndUpdate(
+      movie_id,
+      {
+        $set: bodyData,
+      },
+      { new: true },
+    );
     res.status(200).json({
-      message:{
-      trailer:{ media:bodyData?.media??data.trailer.media ,
-        poster:bodyData?.poster??data.trailer.poster}
+      message: {
+        trailer: {
+          media: bodyData["trailer.media"] ?? data.trailer.media,
+          poster: bodyData["trailer.poster"] ?? data.trailer.poster,
+        },
       },
     });
   } catch (error) {
@@ -392,8 +407,12 @@ export const updateMovie = async (req, res) => {
 
 export const addNewActor = async (req, res) => {
   try {
-    const img = `${process.env.UPLOAD_PATH}${req.file?.filename}`;
-    const actor = await actorSchema.create({ ...req.body, img: img ?? "" });
+   
+    let img = "";
+    if (req.file) {
+      img = `${process.env.UPLOAD_PATH}${req.file.filename}`;
+    }
+    const actor = await actorSchema.create({ ...req.body, img });
     res.status(200).json({
       message: actor,
     });
@@ -406,8 +425,12 @@ export const addNewActor = async (req, res) => {
 
 export const addNewCrew = async (req, res) => {
   try {
-    const img = `${process.env.UPLOAD_PATH}${req.file?.filename}`;
-    const data = await crewSchema.create({ ...req.body, img: img ?? "" });
+   
+    let img = "";
+    if (req.file) {
+      img = `${process.env.UPLOAD_PATH}${req.file.filename}`;
+    }
+    const data = await crewSchema.create({ ...req.body, img });
     res.status(200).json({
       message: data,
     });
@@ -420,15 +443,24 @@ export const addNewCrew = async (req, res) => {
 
 export const updateActor = async (req, res) => {
   try {
+    
     const { _id } = req.query;
     let data;
-    if (req.file) {
-      const img = `${process.env.UPLOAD_PATH}${req.file?.filename}`;
-      data = await actorSchema.findByIdAndUpdate(_id, {
-        $set: { ...req.body, img },
-      });
+    if (req.file && req.file.filename) {
+      const img = `${process.env.UPLOAD_PATH}${req.file.filename}`;
+      data = await actorSchema.findByIdAndUpdate(
+        _id,
+        {
+          $set: { ...req.body, img },
+        },
+        { new: true },
+      );
     } else {
-      data = await actorSchema.findByIdAndUpdate(_id, { $set: req.body });
+      data = await actorSchema.findByIdAndUpdate(
+        _id,
+        { $set: req.body },
+        { new: true },
+      );
     }
     res.status(200).json({
       message: data,
@@ -443,16 +475,22 @@ export const updateActor = async (req, res) => {
 
 export const updateCrew = async (req, res) => {
   try {
+    
     const { _id } = req.query;
     let data;
-    if (req.file) {
-      const img = `${process.env.UPLOAD_PATH}${req.file?.filename}`;
-      data = await crewSchema.updateOne(
-        { movie_id },
+    if (req.file && req.file.filename) {
+      const img = `${process.env.UPLOAD_PATH}${req.file.filename}`;
+      data = await crewSchema.findByIdAndUpdate(
+        _id,
         { $set: { ...req.body, img } },
+        { new: true },
       );
     } else {
-      data = await crewSchema.findByIdAndUpdate(_id, { $set: req.body });
+      data = await crewSchema.findByIdAndUpdate(
+        _id,
+        { $set: req.body },
+        { new: true },
+      );
     }
     res.status(200).json({
       message: data,
@@ -460,6 +498,34 @@ export const updateCrew = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       message: "failed to updated",
+    });
+  }
+};
+
+export const deleteActor = async (req, res) => {
+  try {
+    const { _id } = req.params;
+    await actorSchema.findByIdAndDelete(_id);
+    res.status(200).json({
+      message: "deleted successfully",
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "failed to delete",
+    });
+  }
+};
+
+export const deleteCrew = async (req, res) => {
+  try {
+    const { _id } = req.params;
+    await crewSchema.findByIdAndDelete(_id);
+    res.status(200).json({
+      message: "deleted successfully",
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "failed to delete",
     });
   }
 };

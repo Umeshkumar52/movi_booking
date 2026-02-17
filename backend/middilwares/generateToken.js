@@ -9,7 +9,7 @@ function generateToken({_id,role}){
     const accessToken=jwt.sign(
       { _id:_id, role: role },
       process.env.JWT_SECRET,
-      { expiresIn: "2m" },
+      { expiresIn: "30m" },
     );
 
     return{refreshToken,accessToken}

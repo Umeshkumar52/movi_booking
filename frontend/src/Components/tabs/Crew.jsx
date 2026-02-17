@@ -20,9 +20,9 @@ export default function Crew({movie_id}) {
       setCrew(prev=> prev.map((item) => (item._id ==data._id ? data : item)))
      }
 
-       async function deteleHandler(_id) {
+       async function deleteHandler(_id) {
         try {
-          await instance.delete(`/movies/crew/delete/:${_id}`)
+          await instance.delete(`/movies/crew/delete/${_id}`)
           setCrew(prev=>prev.filter((data)=>data._id!==_id))
         } catch (error) {
           console.log("errr")
@@ -74,7 +74,7 @@ export default function Crew({movie_id}) {
                 crew.map((crew)=>( <tr className="hover:bg-gray-50 transition">
                   <td className="px-6 py-4">
                     <img
-                      src={crew?.avatar}
+                      src={crew?.img}
                       alt="actor"
                       className="w-16 h-16 rounded-full object-cover"
                     />
@@ -97,7 +97,7 @@ export default function Crew({movie_id}) {
                       <button onClick={()=>setUpdateCrewModal(crew)} className="text-indigo-600 hover:text-indigo-800">
                         <Pencil size={18} />
                       </button>
-                      <button onClick={()=>deteleHandler(crew._id)} className="text-red-500 hover:text-red-700">
+                      <button onClick={()=>deleteHandler(crew._id)} className="text-red-500 hover:text-red-700">
                         <Trash2 size={18} />
                       </button>
                     </div>

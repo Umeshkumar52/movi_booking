@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Pencil } from "lucide-react";
-import { UpdateTrailer } from "../moviForms";
+import { UpdateTrailer } from "../MoviForms";
 
 export default function Trailer({data,setMovieData}) {
   console.log(data)
@@ -8,7 +8,7 @@ export default function Trailer({data,setMovieData}) {
   return (
    <>
     {updateTrailerModal&&
-       <UpdateTrailer data={data} setUpdateTrailerModal={setUpdateTrailerModal} />
+       <UpdateTrailer data={data} setMovieData={setMovieData} setUpdateTrailerModal={setUpdateTrailerModal} />
       }
    <div className="bg-gray-50 min-h-screen p-10">
       <div className="max-w-7xl mx-auto">
@@ -39,6 +39,7 @@ export default function Trailer({data,setMovieData}) {
               <p className="text-gray-500 mb-3 font-medium">Movie Video</p>
               <div className="rounded-xl overflow-hidden border border-gray-300 bg-black">
                 <video
+                  key={data?.media}
                   controls
                   className="w-full h-[320px] object-cover"
                 >

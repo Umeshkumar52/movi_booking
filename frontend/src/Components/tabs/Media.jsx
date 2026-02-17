@@ -38,6 +38,7 @@ export default function Media({data,setMovieData}) {
               <p className="text-gray-500 mb-3 font-medium">Movie Video</p>
               <div className="rounded-xl overflow-hidden border border-gray-300 bg-black">
                 <video
+                  key={data?.media}
                   controls
                   className="w-full h-[320px] object-cover"
                 >

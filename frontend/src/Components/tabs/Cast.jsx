@@ -20,10 +20,10 @@ export default function Cast({movie_id}) {
       getcastData()
      },[])
 
-        async function deteleHandler(_id) {
+        async function deleteHandler(_id) {
              try {
-               await instance.delete(`/movies/cast/delete/:${_id}`)
-               setCrew(prev=>prev.filter((data)=>data._id!==_id))
+               await instance.delete(`/movies/actor/delete/${_id}`)
+               setActor(prev=>prev.filter((data)=>data._id!==_id))
              } catch (error) {
                console.log("errr")
              }
@@ -75,7 +75,7 @@ export default function Cast({movie_id}) {
                  {actor.map((actor)=>(<tr key={actor?._id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4">
                       <img
-                        src={actor?.avatar}
+                        src={actor?.img}
                         alt="actor"
                         className="w-16 h-16 rounded-full object-cover"
                       />
@@ -94,7 +94,7 @@ export default function Cast({movie_id}) {
                         <button onClick={()=>setUpddateCastModal(actor)} className="text-indigo-600 hover:text-indigo-800">
                           <Pencil size={18} />
                         </button>
-                        <button className="text-red-500 hover:text-red-700">
+                        <button onClick={()=>deleteHandler(actor._id)} className="text-red-500 hover:text-red-700">
                           <Trash2 size={18} />
                         </button>
                       </div>

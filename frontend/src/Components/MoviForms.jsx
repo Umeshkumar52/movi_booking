@@ -73,9 +73,9 @@ export const EditBasicInfo = ({
       updatedData.append(key, formData[key]);
     }
 
-    await instance.put(`movies/update/basics/${data._id}`, updatedData);
+    const {data: responseData} = await instance.put(`movies/update/basics/${data._id}`, updatedData);
     //  setData(formData)
-    setMovieData((prev) => ({ ...prev, ...formData }));
+    setMovieData((prev) => ({ ...prev, ...responseData.message }));
     setUpdateOverViewModal(null);
   };
 
@@ -597,7 +597,7 @@ export const AddCrew = ({ setCrewData, movie_id, setaddCrewModal }) => {
     formData.append("movie_id", movie_id);
     console.log("Sending 👉", crew);
 
-    const { data } = await instance.post("/movies/crew/add", formData);
+    const { data } = await multiInstance.post("/movies/crew/add", formData);
     setCrewData((prev) => [...prev, data.message]);
     setaddCrewModal((prev) => !prev);
   };
@@ -735,12 +735,12 @@ export const AddCast = ({ setActor, movie_id, setAddCastModal }) => {
     formData.append("description", crew.description);
     formData.append("avatar", crew.image);
     formData.append("movie_id", movie_id);
-
-    const { data } = await instance.post("/movies/actor/add", formData);
-    console.log("Sending 👉", data);
+  // console.log(crew.image)
+    const { data } = await multiInstance.post("/movies/actor/add", formData);
+    // console.log("Sending 👉", formData);
     setActor((prev) => [...prev, data.message]);
     setAddCastModal((prev) => !prev);
-    // axios.post("/movies/actor/add", formData)
+    
   };
 
   return (
@@ -880,7 +880,7 @@ export const UpdateCrew = ({
     formData.append("description", crew.description);
     formData.append("avatar", crew.image);
     formData.append("_id", crew._id);
-    const { data } = await instance.put(
+    const { data } = await multiInstance.put(
       `/movies/crew/update?_id=${crew._id}`,
       formData,
     );
@@ -892,6 +892,8 @@ export const UpdateCrew = ({
   useEffect(() => {
     setCrew(updateCrewData);
   }, []);
+  console.log(crew)
+
   return (
     <div className="fixed top-0 w-screen min-h-screen bg-white/80 flex items-center justify-center">
       <form
@@ -1029,11 +1031,11 @@ export const UpdateCast = ({
     formData.append("name", crew.name);
     formData.append("role", crew.role);
     formData.append("description", crew.description);
-    formData.append("image", crew.image);
+    formData.append("avatar", crew.image);
     formData.append("_id", crew._id);
     console.log("Sending 👉", crew);
 
-    const { data } = await instance.put(
+    const { data } = await multiInstance.put(
       `/movies/actor/update?_id=${updateCastModal._id}`,
       formData,
     );

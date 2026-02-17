@@ -17,6 +17,8 @@ import {
   addNewCrew,
   getActor,
   getcrew,
+  deleteActor,
+  deleteCrew,
 } from "../controllers/moviController.js";
 import allowRole from "../middilwares/allowRole.js";
 
@@ -37,18 +39,7 @@ router.post(
   ]),
   create,
 );
-router.post(
-  "/actor/add",
-  allowRole("admin"),
-  upload.single("avatar"),
-  addNewActor,
-);
-router.post(
-  "/crew/add",
-  allowRole("admin"),
-  upload.single("avatar"),
-  addNewCrew,
-);
+
 
 router.get("/actor/get/:movie_id", getActor);
 router.get("/crew/getdata/:movie_id", getcrew);
@@ -86,7 +77,20 @@ router.put(
   upload.single("avatar"),
   updateCrew,
 );
-
+router.post(
+  "/actor/add",
+  allowRole("admin"),
+  upload.single("avatar"),
+  addNewActor,
+);
+router.post(
+  "/crew/add",
+  allowRole("admin"),
+  upload.single("avatar"),
+  addNewCrew,
+);
 router.delete("/delete/:_id", allowRole("admin"), deleteMovie);
+router.delete("/actor/delete/:_id", allowRole("admin"), deleteActor);
+router.delete("/crew/delete/:_id", allowRole("admin"), deleteCrew);
 router.put("/update", allowRole("admin"), upload.single("file"), updateMovie);
 export default router;
