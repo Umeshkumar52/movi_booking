@@ -3,34 +3,14 @@ import { RxCross1 } from "react-icons/rx";
 import { useParams } from "react-router-dom";
 import instance, { multiInstance } from "../utils/axiosInstance";
 export const EditBasicInfo = ({
-  setData,
+  
   data,
   setMovieData,
   setUpdateOverViewModal,
 }) => {
-  const [formData, setFormData] = useState({
-    category: "Movie",
-    main_title: "",
-    title: "",
-    year: "",
-    duration: "",
-    // certificate: "UA",
-    rating: "",
-    genres: [],
-    languages: [],
-    storyline: "",
-    poster: null,
-    preview: "",
-  });
-  console.log(formData);
-  const genresList = [
-    "Action",
-    "Comedy",
-    "Romantic",
-    "Drama",
-    "Thriller",
-    "Horror",
-  ];
+  const [formData, setFormData] = useState({});
+  
+  const genresList = ["Action", "Comedy", "Romantic", "Drama", "Thriller", "Horror"];
   const languagesList = ["English", "Tamil", "Hindi", "Malayalam", "Telugu"];
 
   // Handle input change
@@ -39,65 +19,47 @@ export const EditBasicInfo = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle genre/language toggle
-  const handleToggle = (type, value) => {
-    setFormData((prev) => {
-      const list = prev[type] || [];
-      return {
-        ...prev,
-        [type]: list?.includes(value)
-          ? list.filter((v) => v !== value)
-          : [...list, value],
-      };
-    });
-  };
-
-  // Image upload preview
-  const handleImage = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        poster: file,
-        preview: URL.createObjectURL(file),
-      }));
-    }
-  };
-
   // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const updatedData = new FormData();
     for (const key in formData) {
+      // Don't append if it's the preview URL or null poster (unless we want to clear it, but here we only send file if exists)
+      if (key === 'preview') continue;
+      if (key === 'poster' && !(formData[key] instanceof File)) continue;
+      
       updatedData.append(key, formData[key]);
     }
 
-    const {data: responseData} = await instance.put(`movies/update/basics/${data._id}`, updatedData);
-    //  setData(formData)
-    setMovieData((prev) => ({ ...prev, ...responseData.message }));
-    setUpdateOverViewModal(null);
+    try {
+      const {data: responseData} = await instance.put(`movies/update/basics/${data._id}`, updatedData);
+      setMovieData((prev) => ({ ...prev, ...responseData.message }));
+      setUpdateOverViewModal(null);
+      toast.success("Details updated successfully");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Update failed");
+    }
   };
 
   useEffect(() => {
-    setFormData(data);
-  }, []);
-  console.log(formData, data);
+    setFormData({ ...data });
+  }, [data]);
+   console.log(formData)
   return (
     <div className="fixed inset-0 z-[1000] bg-slate-950/80">
-      {/* Scroll wrapper with top/bottom space */}
       <div className="hide-scrollbar w-full h-full overflow-y-auto">
         <div className="flex min-h-full items-center justify-center py-16 px-4">
           <form className="relative w-[700px] border border-slate-700 bg-slate-900 shadow-2xl rounded-xl p-8">
             <RxCross1
               className="absolute top-4 right-4 text-3xl text-slate-400 hover:text-red-500 cursor-pointer transition-colors"
-              onClick={() => setUpdateOverViewModal((prev) => !prev)}
+              onClick={() => setUpdateOverViewModal(null)}
             />
             <h2 className="text-2xl font-semibold mb-6 text-white">Edit Basic Info</h2>
 
-            {/* Poster */}
+            {/* Poster Preview */}
             <div className="flex justify-center mb-6">
-              <label className="cursor-pointer">
+              <label className="cursor-pointer group relative">
                 <img
                   src={
                     formData.preview ||
@@ -105,149 +67,173 @@ export const EditBasicInfo = ({
                     "https://via.placeholder.com/150"
                   }
                   alt="poster"
-                  className="w-40 h-56 object-cover rounded-lg border-2 border-slate-700"
+                  className="w-40 h-56 object-cover rounded-lg border-2 border-slate-700 transition-opacity group-hover:opacity-50"
                 />
+                {/* <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                   <p className="bg-slate-950/60 px-2 py-1 rounded text-xs text-white">Change Poster</p>
+                </div> */}
                 {/* <input
                   type="file"
                   hidden
                   accept="image/*"
-                  onChange={handleImage}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setFormData(prev => ({
+                        ...prev,
+                        poster: file,
+                        preview: URL.createObjectURL(file)
+                      }));
+                    }
+                  }}
                 /> */}
               </label>
             </div>
 
-            {/* Category + Main Title */}
+            {/* Category + Industry (Main Title) */}
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
-              >
-                <option>Movie</option>
-                <option>Series</option>
-              </select>
+              <div className="space-y-1">
+                <label className="text-xs text-slate-500 uppercase font-bold px-1">Category</label>
+                <select
+                  name="Category"
+                  value={formData.Category || formData.category}
+                  onChange={handleChange}
+                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+                >
+                  <option value="movie">Movie</option>
+                  <option value="series">Series</option>
+                </select>
+              </div>
 
-              <input
-                name="main_title"
-                placeholder="Main Title (Optional)"
-                value={formData.main_title}
-                onChange={handleChange}
-                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-              />
-            </div>
-
-            {/* Title */}
-            <input
-              name="title"
-              placeholder="Title"
-              value={formData.title}
-              onChange={handleChange}
-              className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500 mb-4"
-            />
-
-            {/* Year + Duration */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <input
-                name="year"
-                type="number"
-                placeholder="Year"
-                value={formData.year}
-                onChange={handleChange}
-                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-              />
-              <input
-                name="duration"
-                type="number"
-                placeholder="Duration (minutes)"
-                value={formData.duration}
-                onChange={handleChange}
-                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-              />
-            </div>
-
-            {/* Certificate + Rating */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              {/* <select
-            name="certificate"
-            value={formData.certificate}
-            onChange={handleChange}
-            className="input"
-          >
-            <option>U</option>
-            <option>UA</option>
-            <option>A</option>
-          </select> */}
-
-              <input
-                name="rating"
-                type="number"
-                placeholder="Rating"
-                value={formData.rating}
-                onChange={handleChange}
-                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-              />
-            </div>
-
-            {/* Genres */}
-            <div className="mb-4">
-              <p className="mb-2 font-medium text-slate-300">Genres</p>
-              <div className="flex flex-wrap gap-2">
-                {genresList.map((g) => (
-                  <button
-                    type="button"
-                    key={g}
-                    onClick={() => handleToggle("genres", g)}
-                    className={`px-4 py-1 rounded-full border ${
-                      formData?.genres?.includes(g)
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500"
-                    }`}
-                  >
-                    {g}
-                  </button>
-                ))}
+              <div className="space-y-1">
+                <label className="text-xs text-slate-500 uppercase font-bold px-1">Industry</label>
+                <select
+                  name="main_title"
+                  value={formData.main_title}
+                  onChange={handleChange}
+                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Industry</option>
+                  <option value="holywood">Hollywood</option>
+                  <option value="japanise">Japanese</option>
+                </select>
               </div>
             </div>
 
-            {/* Languages */}
-            <div className="mb-4">
-              <p className="mb-2 font-medium text-slate-300">Languages</p>
-              <div className="flex flex-wrap gap-2">
-                {languagesList.map((l) => (
-                  <button
-                    type="button"
-                    key={l}
-                    onClick={() => handleToggle("languages", l)}
-                    className={`px-4 py-1 rounded-full border ${
-                      formData.languages?.includes(l)
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500"
-                    }`}
-                  >
-                    {l}
-                  </button>
-                ))}
+            {/* Title */}
+            <div className="space-y-1 mb-4">
+              <label className="text-xs text-slate-500 uppercase font-bold px-1">Movie Title</label>
+              <input
+                name="title"
+                placeholder="Title"
+                value={formData.title}
+                onChange={handleChange}
+                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
+              />
+            </div>
+
+            {/* Year + Duration */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="space-y-1">
+                <label className="text-xs text-slate-500 uppercase font-bold px-1">Year</label>
+                <input
+                  name="year"
+                  type="number"
+                  placeholder="Year"
+                  value={formData.year}
+                  onChange={handleChange}
+                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-slate-500 uppercase font-bold px-1">Duration (Min)</label>
+                <input
+                  name="duration"
+                  type="number"
+                  placeholder="Duration"
+                  value={formData.duration}
+                  onChange={handleChange}
+                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
+                />
+              </div>
+            </div>
+
+            {/* Rating + Price */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="space-y-1">
+                <label className="text-xs text-slate-500 uppercase font-bold px-1">Rating</label>
+                <input
+                  name="rating"
+                  type="number"
+                  step="0.1"
+                  placeholder="Rating"
+                  value={formData.rating}
+                  onChange={handleChange}
+                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-slate-500 uppercase font-bold px-1">Price</label>
+                <input
+                  name="price"
+                  type="number"
+                  placeholder="Price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
+                />
+              </div>
+            </div>
+
+            {/* Genres + Languages */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="space-y-1">
+                <label className="text-xs text-slate-500 uppercase font-bold px-1">Genre</label>
+                <select
+                  name="genres"
+                  value={formData.genres}
+                  onChange={handleChange}
+                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Genre</option>
+                  {genresList.map(g => <option key={g} value={g.toLowerCase()}>{g}</option>)}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs text-slate-500 uppercase font-bold px-1">Language</label>
+                <select
+                  name="language"
+                  value={formData.language || formData.languages?.[0]}
+                  onChange={handleChange}
+                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Language</option>
+                  {languagesList.map(l => <option key={l} value={l.toLowerCase()}>{l}</option>)}
+                </select>
               </div>
             </div>
 
             {/* Storyline */}
-            <textarea
-              name="storyline"
-              rows="4"
-              placeholder="Storyline"
-              value={formData.storyline}
-              onChange={handleChange}
-              className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500 mb-6"
-            />
+            <div className="space-y-1 mb-6">
+              <label className="text-xs text-slate-500 uppercase font-bold px-1">Storyline</label>
+              <textarea
+                name="storyline"
+                rows="4"
+                placeholder="Storyline"
+                value={formData.storyline}
+                onChange={handleChange}
+                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500 resize-none"
+              />
+            </div>
 
             {/* Submit */}
             <button
               onClick={handleSubmit}
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 mb-10 rounded-lg font-semibold transition-colors"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
             >
-              Save Changes
+              Update Movie Details
             </button>
           </form>
         </div>
@@ -598,7 +584,7 @@ export const AddCrew = ({ setCrewData, movie_id, setaddCrewModal }) => {
     console.log("Sending 👉", crew);
 
     const { data } = await multiInstance.post("/movies/crew/add", formData);
-    setCrewData((prev) => [...prev, data.message]);
+    setCrewData((prev) => [data.message,...prev]);
     setaddCrewModal((prev) => !prev);
   };
 
@@ -738,7 +724,7 @@ export const AddCast = ({ setActor, movie_id, setAddCastModal }) => {
   // console.log(crew.image)
     const { data } = await multiInstance.post("/movies/actor/add", formData);
     // console.log("Sending 👉", formData);
-    setActor((prev) => [...prev, data.message]);
+    setActor((prev) => [data.message,...prev]);
     setAddCastModal((prev) => !prev);
     
   };

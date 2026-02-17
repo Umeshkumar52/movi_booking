@@ -9,7 +9,7 @@ export default function MovieTabs({ activeTab, setActiveTab }) {
             <button
               key={tab}
               className={`
-                py-4 px-2 font-semibold text-sm transition-all duration-200 border-b-2
+                py-4 px-2 font-semibold text-xl transition-all duration-200 border-b-2
                 ${
                   activeTab === tab
                     ? "text-blue-500 border-blue-500"

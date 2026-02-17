@@ -6,20 +6,25 @@ import seatsSchema from "../models/seatsSchema.js";
 import { createOrder } from "./notificationController.js";
 export const getMovies = async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.params;
+    const page = Number(req.params.page) || 1;
+    const limit = Number(req.params.limit) || 10;
     const skipPage = (page - 1) * limit;
+    
     const response = await movies
       .find()
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 }) // Deterministic sorting
       .skip(skipPage)
       .limit(limit)
       .lean();
+      
     const documents = await movies.countDocuments().lean();
+    
     return res.status(200).json({
       message: { data: response, documents },
     });
   } catch (err) {
-    return res.status(301).json({
+    console.error("Get Movies Error:", err);
+    return res.status(500).json({
       message: "Something went wrong !",
     });
   }
@@ -203,16 +208,36 @@ export const searchMovi = async (req, res) => {
   try {
     const { SearchKey } = req.query;
     if (SearchKey) {
+      const searchRegex = { $regex: SearchKey, $options: "i" };
+      
+      // Build $or query for multiple fields
+      const query = {
+        $or: [
+          { name: searchRegex },
+          { main_title: searchRegex },
+          { title: searchRegex },
+          { Category: searchRegex },
+          { language: searchRegex },
+          { genres: searchRegex },
+          { storyline: searchRegex },
+        ],
+      };
+
+      // Add numeric search for year if SearchKey is a number
+      if (!isNaN(SearchKey)) {
+        query.$or.push({ year: Number(SearchKey) });
+      }
+
       const response = await movies
-        .find({
-          title: { $regex: SearchKey, $options: "i" },
-        })
+        .find(query)
         .sort({ createdAt: -1 });
+        
       return res.status(200).json({
         message: response,
       });
     }
   } catch (err) {
+    console.error("Search Error:", err);
     return res.status(200).json({
       message: "Something went Wrong",
     });

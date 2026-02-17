@@ -1,4 +1,4 @@
-import { Star, Eye, Clock } from "lucide-react";
+import { Star, Eye, Clock, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminMoviCard({ movie }) {
@@ -7,49 +7,68 @@ export default function AdminMoviCard({ movie }) {
   return (
     <div
       onClick={() => navigate(`/movie/details/${movie._id}`)}
-      className="w-[22rem] rounded-2xl overflow-hidden shadow-2xl bg-slate-900 border border-slate-800 text-slate-200 hover:scale-105 transition-transform duration-300 cursor-pointer"
+      className="group w-[22rem] rounded-[2.5rem] overflow-hidden bg-slate-900/40 border border-white/5 hover:border-indigo-500/50 hover:bg-slate-900 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-2"
     >
-      {/* Poster */}
-      <div className="relative">
+      {/* Poster Section */}
+      <div className="relative overflow-hidden aspect-[11/14]">
         <img
           src={movie.poster}
           alt={movie.title}
-          className="w-full h-[24rem] object-cover"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
 
-        {/* Top badges */}
-        <div className="w-full text-white px-4 absolute top-3 flex justify-between">
-          <span className="bg-green-600/90 backdrop-blur-sm text-xs px-2 py-1 rounded-md font-semibold shadow-lg">
-           {movie.status||"active"}
+        {/* Dynamic Badges Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+        
+        <div className="absolute top-4 inset-x-4 flex justify-between items-start">
+          <div className="flex flex-col gap-2">
+            <span className="backdrop-blur-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full font-bold shadow-lg">
+              {movie.status || "active"}
+            </span>
+          </div>
+          <span className="backdrop-blur-md bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full font-bold shadow-lg">
+            {movie.Category || "Movie"}
           </span>
-          <span className="bg-blue-600/90 backdrop-blur-sm text-xs px-2 py-1 rounded-md font-semibold shadow-lg">
-           { movie.Category||"Movie"}
-          </span>
+        </div>
+
+        {/* Rating Floating Badge */}
+        <div className="absolute bottom-4 right-4 backdrop-blur-md bg-slate-900/80 border border-white/10 px-3 py-1.5 rounded-2xl flex items-center gap-1.5 text-yellow-400 shadow-xl group-hover:bg-yellow-400 group-hover:text-slate-950 transition-all duration-300">
+          <Star size={14} fill="currentColor" strokeWidth={0} />
+          <span className="text-sm font-black">{movie.rating}</span>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4 space-y-3">
-        <h2 className="text-xl font-bold tracking-wide text-white truncate">{movie.title}</h2>
-
-        <div className="flex items-center justify-between text-sm text-slate-400">
-          <div className="flex  items-center gap-1">
-            <Clock size={16} className="text-indigo-400" />
-            {movie.duration}
-          </div>
-
-          <div className="flex   items-center gap-1">
-            <Eye size={16} className="text-blue-400" />
-            {movie?.views||50}
-          </div>
-
-          <div className="flex items-center gap-1 text-yellow-400 font-semibold">
-            <Star size={16} fill="currentColor" />
-            {movie.rating}
-          </div>
+      {/* Content Section */}
+      <div className="p-6 space-y-4">
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-indigo-400/80 font-bold">
+            {movie.genre?.split(',')[0] || "Cinematic"}
+          </p>
+          <h2 className="text-xl font-black text-white group-hover:text-indigo-400 transition-colors line-clamp-1">
+            {movie.title}
+          </h2>
         </div>
 
-        <div className="text-sm text-blue-400 font-medium">{movie.genre}</div>
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="flex items-center gap-2.5 text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
+            <div className="p-1.5 bg-slate-800 rounded-lg">
+              <Clock size={14} className="text-indigo-400" />
+            </div>
+            <span className="font-medium">{movie.duration}</span>
+          </div>
+
+          <div className="flex items-center gap-2.5 text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
+            <div className="p-1.5 bg-slate-800 rounded-lg">
+              <Eye size={14} className="text-blue-400" />
+            </div>
+            <span className="font-medium">{movie?.views || 50} Views</span>
+          </div>
+        </div>
+        
+        <div className="pt-2 flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+           <Calendar size={12} />
+           <span>Recent Release</span>
+        </div>
       </div>
     </div>
   );
