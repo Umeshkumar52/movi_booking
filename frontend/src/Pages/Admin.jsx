@@ -8,6 +8,7 @@ import AdminMovieCard from '../Components/AdminMovieCard'
 import SeriesCard from "../Components/series/SeriesCard";
 import instance from "../utils/axiosInstance";
 import { Search, Plus, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import AdminFilters, { INITIAL_FILTERS } from "../Components/AdminFilters";
 
 export default function Admin() {
   const [movies, setMovies] = useState([]);
@@ -18,6 +19,7 @@ export default function Admin() {
   const pageLimit =15;
   const [searchQuery, setSearchQuery] = useState("");
   const [totalDocuments, setTotalDocuments] = useState(0);
+  const [filters, setFilters] = useState({ ...INITIAL_FILTERS });
   const navigate = useNavigate();
   const isFirstRender=useRef(true)
   async function getMovies() {
@@ -45,18 +47,31 @@ async function logout() {
 
   async function filterMovies() {
     try {
+      const params = new URLSearchParams();
+      if (searchQuery) params.set("SearchKey", searchQuery);
+      Object.entries(filters).forEach(([key, val]) => {
+        if (val !== "" && val !== undefined) params.set(key, val);
+      });
       const res = await instance.get(
-        `/movies/search?SearchKey=${searchQuery}`,
+        `/movies/search?${params.toString()}`,
       );
       setMovies(res.data.message);
-      // Reset pagination when searching
+      // Reset pagination when searching/filtering
       setTotalDocuments(0);
     } catch (error) {
       toast.error(error?.response?.data?.message || "Something went wrong !");
     }
   }
   const debounceSearch = useDebounce(searchQuery, 500);
+  const hasActiveFilters = Object.values(filters).some((v) => v !== "");
+
   useEffect(() => {
+    // If filters are active, always use the search/filter API
+    if (hasActiveFilters) {
+      filterMovies();
+      return;
+    }
+
     if (!debounceSearch.trim()) {
       if (isFirstRender.current) {
         isFirstRender.current = false;
@@ -73,7 +88,7 @@ async function logout() {
       return;
     }
     filterMovies();
-  }, [debounceSearch]);
+  }, [debounceSearch, filters]);
 
   useEffect(() => {
     getMovies();
@@ -122,27 +137,36 @@ async function logout() {
         </div>
       </header>
 
-      {/* Main Content Grid */}
-      <main className="max-w-[1600px] mx-auto w-full px-6 lg:px-12 py-8 flex flex-wrap gap-8 justify-center min-h-[70vh]">
-        {movies.length > 0 ? (
-          movies.map((item) => (
-            item.Category === "series" ? (
-              <SeriesCard key={item._id} series={item} />
+      {/* Sidebar + Content Layout */}
+      <div className="relative h-full flex flex-1">
+        {/* Left Sidebar Filters */}
+        <AdminFilters filters={filters} onChange={setFilters} />
+
+        {/* Main Content Grid */}
+        <main className="flex-1 px-6 lg:px-10 py-8">
+          {/* max-w-[1400px]  min-h-[70vh] */}
+          <div className=" mx-auto flex flex-wrap gap-8 justify-center min-h-[100vh]">
+            {movies.length > 0 ? (
+              movies.map((item) => (
+                item.Category === "series" ? (
+                  <SeriesCard key={item._id} series={item} />
+                ) : (
+                  <AdminMovieCard key={item._id} movie={item} />
+                )
+              ))
             ) : (
-              <AdminMovieCard key={item._id} movie={item} />
-            )
-          ))
-        ) : (
-          <div className="h-96 flex flex-col items-center justify-center text-slate-500 gap-4">
-             <div className="size-20 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800">
-                <Search size={40} className="opacity-20" />
-             </div>
-             <p className="text-xl font-medium tracking-wide text-center px-6">
-                No cinematic masterpieces found in this timeline
-             </p>
+              <div className="h-96 flex flex-col items-center justify-center text-slate-500 gap-4 w-full">
+                <div className="size-20 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800">
+                  <Search size={40} className="opacity-20" />
+                </div>
+                <p className="text-xl font-medium tracking-wide text-center px-6">
+                  No cinematic masterpieces found in this timeline
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </main>
+        </main>
+      </div>
 
       {/* Modals */}
       {editModal && (
@@ -159,10 +183,10 @@ async function logout() {
       )}
 
       {/* Premium Pagination Bar */}
-      {totalDocuments > 1 && !searchQuery && (
+      {!searchQuery && (
         <footer className="mt-auto border-t border-white/5 bg-slate-900/50 backdrop-blur-md">
           <div className="max-w-[1600px] mx-auto w-full px-6 lg:px-12 py-8 flex flex-col sm:flex-row justify-between items-center gap-6">
-            <div className="text-slate-400 text-sm font-medium order-2 sm:order-1">
+            <div className="text-slate-400 text-sm pl-[10rem] font-medium order-2 sm:order-1">
               Showing page <span className="text-indigo-400">{page}</span> of <span className="text-indigo-400">{totalDocuments}</span>
             </div>
             

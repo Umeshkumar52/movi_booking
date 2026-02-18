@@ -237,12 +237,22 @@ export const create = async (req, res) => {
 
 export const searchMovi = async (req, res) => {
   try {
-    const { SearchKey } = req.query;
+    const { SearchKey, Category, status, language, genres, year, premium } = req.query;
+
+    // Build filter conditions from query params
+    const filterConditions = [];
+    if (Category) filterConditions.push({ Category });
+    if (status) filterConditions.push({ status });
+    if (language) filterConditions.push({ language: { $regex: language, $options: "i" } });
+    if (genres) filterConditions.push({ genres: { $regex: genres, $options: "i" } });
+    if (year && !isNaN(year)) filterConditions.push({ year: Number(year) });
+    if (premium !== undefined && premium !== "") filterConditions.push({ premium: premium  });
+
+    // Build text-search conditions
+    let searchConditions = null;
     if (SearchKey) {
       const searchRegex = { $regex: SearchKey, $options: "i" };
-      
-      // Build $or query for multiple fields
-      const query = {
+      searchConditions = {
         $or: [
           { name: searchRegex },
           { main_title: searchRegex },
@@ -253,20 +263,27 @@ export const searchMovi = async (req, res) => {
           { storyline: searchRegex },
         ],
       };
-
       // Add numeric search for year if SearchKey is a number
       if (!isNaN(SearchKey)) {
-        query.$or.push({ year: Number(SearchKey) });
+        searchConditions.$or.push({ year: Number(SearchKey) });
       }
-
-      const response = await movies
-        .find(query)
-        .sort({ createdAt: -1 });
-        
-      return res.status(200).json({
-        message: response,
-      });
     }
+
+    // Combine: both, either, or all
+    let query = {};
+    if (searchConditions && filterConditions.length) {
+      query = { $and: [searchConditions, ...filterConditions] };
+    } else if (searchConditions) {
+      query = searchConditions;
+    } else if (filterConditions.length) {
+      query = { $and: filterConditions };
+    }
+
+    const response = await movies.find(query).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      message: response,
+    });
   } catch (err) {
     console.error("Search Error:", err);
     return res.status(200).json({

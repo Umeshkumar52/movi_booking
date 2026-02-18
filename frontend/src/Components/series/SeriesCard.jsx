@@ -7,7 +7,7 @@ export default function SeriesCard({ series }) {
   return (
     <div
       onClick={() => navigate(`/series/details/${series._id}`)}
-      className={`group w-[22rem] rounded-[2.5rem] overflow-hidden bg-slate-900/40 border ${series.premium ? 'border-amber-500/30 ring-1 ring-amber-500/10' : 'border-white/5'} hover:border-indigo-500/50 hover:bg-slate-900 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-2`}
+      className={`group h-fit w-[22rem] rounded-[2.5rem] overflow-hidden bg-slate-900/40 border ${series.premium ? 'border-amber-500/30 ring-1 ring-amber-500/10' : 'border-white/5'} hover:border-indigo-500/50 hover:bg-slate-900 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-2`}
     >
       {/* Poster Section */}
       <div className="relative overflow-hidden aspect-[11/14]">

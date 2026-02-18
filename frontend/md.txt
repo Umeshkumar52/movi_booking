@@ -1,0 +1,62 @@
+  {totalDocuments > 1 && !searchQuery && !hasActiveFilters && (
+        <footer className="mt-auto border-t border-white/5 bg-slate-900/50 backdrop-blur-md">
+          <div className="max-w-[1600px] mx-auto w-full px-6 lg:px-12 py-8 flex flex-col sm:flex-row justify-between items-center gap-6">
+            <div className="text-slate-400 text-sm font-medium order-2 sm:order-1">
+              Showing page <span className="text-indigo-400">{page}</span> of <span className="text-indigo-400">{totalDocuments}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 order-1 sm:order-2">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((prev) => (prev > 1 ? prev - 1 : prev))}
+                className="flex items-center justify-center size-10 rounded-xl border border-white/5 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-indigo-600/20 hover:border-indigo-500/50 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                aria-label="Previous Page"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              
+              <div className="flex items-center gap-2">
+                {Array.from({ length: totalDocuments }, (_, index) => {
+                  const pNum = index + 1;
+                  // Show current, first, last, and neighbors
+                  if (
+                    pNum === 1 || 
+                    pNum === totalDocuments || 
+                    (pNum >= page - 1 && pNum <= page + 1)
+                  ) {
+                    return (
+                      <button
+                        onClick={() => setPage(pNum)}
+                        key={pNum}
+                        className={`size-10 rounded-xl border transition-all font-bold flex items-center justify-center text-sm ${
+                          page === pNum 
+                            ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30 scale-105" 
+                            : "bg-slate-800/50 border-white/5 text-slate-400 hover:bg-slate-800 hover:text-indigo-400"
+                        }`}
+                      >
+                        {pNum}
+                      </button>
+                    );
+                  }
+                  // Show ellipsis
+                  if (pNum === page - 2 || pNum === page + 2) {
+                    return <span key={pNum} className="text-slate-600">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+
+              <button
+                disabled={page === totalDocuments}
+                onClick={() =>
+                  setPage((prev) => (prev < totalDocuments ? prev + 1 : prev))
+                }
+                className="flex items-center justify-center size-10 rounded-xl border border-white/5 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-indigo-600/20 hover:border-indigo-500/50 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                aria-label="Next Page"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+        </footer>
+      )}
