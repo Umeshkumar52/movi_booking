@@ -4,7 +4,7 @@ const seasonSchema = new mongoose.Schema(
   {
     series: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "content",   // referencing Content collection
+      ref: "movies",   // referencing Content collection
       required: true,
     },
 

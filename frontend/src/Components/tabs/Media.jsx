@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Pencil } from "lucide-react";
 import { UpdateMovieMedia } from "../MoviForms";
+import CinematicVideoPreview from "../CinematicVideoPreview";
 export default function Media({data,setMovieData}) {
  const [updateMovieMediaModal,setUpdateMovieMediaModal]=useState(null)
   
@@ -28,25 +29,21 @@ export default function Media({data,setMovieData}) {
         {/* Movie Video */}
         <div className="space-y-2">
           <p className="font-semibold text-gray-700">Main Video</p>
-          <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-sm">
-            <video
-              key={data?.media}
-              controls
-              className="w-full h-full object-contain"
-            >
-              <source src={data?.media} type="video/mp4" />
-            </video>
-          </div>
+          <CinematicVideoPreview 
+            videoUrl={data?.media} 
+            thumbnail={data?.poster || "/puspa.jpeg"} 
+            className="aspect-video"
+          />
         </div>
 
         {/* Thumbnail */}
         <div className="space-y-2">
           <p className="font-semibold text-gray-700">Thumbnail Poster</p>
-          <div className="aspect-video bg-gray-100 rounded-xl overflow-hidden shadow-sm relative group">
+          <div className="aspect-video bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 rounded-xl overflow-hidden shadow-sm relative group">
             <img
               src={data?.poster || "/puspa.jpeg"}
               alt="thumbnail"
-              className="w-full h-full object-cover"
+              className="w-full h-full aspect-video "
             />
           </div>
         </div>

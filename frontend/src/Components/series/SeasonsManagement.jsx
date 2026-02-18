@@ -49,7 +49,7 @@ export default function SeasonsManagement({ seriesId, seasons, refreshData, onMa
                 <img
                   src={season.banner}
                   alt={`Season ${season.seasonNumber}`}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="w-full h-full aspect-video transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent" />
                 <div className="absolute top-4 left-4 backdrop-blur-md bg-indigo-600/20 text-indigo-400 border border-indigo-600/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest leading-none">

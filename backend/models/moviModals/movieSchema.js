@@ -62,6 +62,10 @@ const moviSchema = new mongoose.Schema({
     media: {
       type: String
     },
+    views:{
+    type:Number,
+    default:0
+    },
     duration: {
       type: Number,
       require: function () {

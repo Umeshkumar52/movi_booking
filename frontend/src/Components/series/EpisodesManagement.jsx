@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Clock, Hash, Play, MoreVertical, ArrowLeft, Video, Image as ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Clock, Hash, Play, MoreVertical, ArrowLeft, Video, Image as ImageIcon, Maximize, ExternalLink } from "lucide-react";
 import { AddEpisodeModal, UpdateEpisodeModal } from "../seriesForms/EpisodeForms";
 import instance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
+import CinematicVideoPreview from "../CinematicVideoPreview";
 
 export default function EpisodesManagement({ seriesId, seasonId, onBack }) {
   const [season, setSeason] = useState(null);
@@ -82,71 +83,12 @@ export default function EpisodesManagement({ seriesId, seasonId, onBack }) {
       <div className="grid grid-cols-1 gap-4">
         {episodes && episodes.length > 0 ? (
           episodes.map((episode) => (
-            <div
-              key={episode._id}
-              className="group relative bg-slate-800/20 border border-white/5 rounded-3xl p-4 flex flex-col md:flex-row items-center gap-6 hover:bg-slate-800/40 hover:border-indigo-500/30 transition-all duration-300"
-            >
-              {/* Thumbnail with duration overlay */}
-              <div className="relative w-full md:w-64 aspect-video rounded-2xl overflow-hidden shadow-2xl flex-shrink-0">
-                 <video
-                 controls
-                  src={episode.videoUrl}
-                  poster={episode.thumbnail}
-                  alt={episode.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-
-                {/* <img
-                  src={episode.thumbnail}
-                  alt={episode.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                /> */}
-
-                {/* <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-transparent transition-colors" />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                   <div className="p-4 bg-white text-slate-950 rounded-full shadow-2xl">
-                      <Play size={24} fill="currentColor" />
-                   </div>
-                </div>
-                <div className="absolute bottom-3 right-3 backdrop-blur-md bg-slate-950/60 text-white px-2 py-1 rounded-md text-[10px] font-black tabular-nums border border-white/10">
-                   {episode.duration} min
-                </div> */}
-              </div>
-
-              {/* Episode Info */}
-              <div className="flex-1 space-y-2 text-center md:text-left">
-                <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start">
-                   <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest px-2.5 py-1 bg-indigo-500/10 rounded-lg">Episode {episode.episodeNumber}</span>
-                   {episode.isPremium && (
-                      <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest px-2.5 py-1 bg-amber-500/10 rounded-lg border border-amber-500/20">Premium</span>
-                   )}
-                </div>
-                <h4 className="text-xl font-black text-white group-hover:text-indigo-400 transition-colors">
-                  {episode.title}
-                </h4>
-                <p className="text-slate-500 text-sm line-clamp-2 leading-relaxed max-w-2xl font-medium">
-                  {episode.description || "No description provided for this episode."}
-                </p>
-              </div>
-
-              {/* Actions */}
-              <div className="flex md:flex-col gap-2 items-center justify-center pr-4">
-                  <button
-                    onClick={() => setEditEpisode(episode)}
-                    className="p-3 bg-slate-800 hover:bg-white/10 rounded-2xl text-slate-400 hover:text-white transition-all active:scale-90 border border-white/5"
-                    title="Edit Metadata"
-                  >
-                    <Edit size={18} />
-                  </button>
-                  <button
-                    onClick={() => deleteEpisodeHandler(episode._id)}
-                    className="p-3 bg-slate-800 hover:bg-rose-500/20 rounded-2xl text-slate-400 hover:text-rose-400 transition-all active:scale-90 border border-white/5"
-                    title="Delete Episode"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-              </div>
-            </div>
+            <EpisodeCard 
+              key={episode._id} 
+              episode={episode} 
+              onEdit={() => setEditEpisode(episode)}
+              onDelete={() => deleteEpisodeHandler(episode._id)}
+            />
           ))
         ) : (
           <div className="col-span-full flex flex-col items-center justify-center py-24 text-center space-y-6 bg-slate-900/20 rounded-[3rem] border border-dashed border-white/5 shadow-inner">
@@ -178,6 +120,54 @@ export default function EpisodesManagement({ seriesId, seasonId, onBack }) {
           onEpisodeUpdated={fetchSeasonDetails}
         />
       )}
+    </div>
+  );
+}
+
+function EpisodeCard({ episode, onEdit, onDelete }) {
+  return (
+    <div className="group relative bg-slate-800/20 border border-white/5 rounded-3xl p-4 flex flex-col md:flex-row items-center gap-6 hover:bg-slate-800/40 hover:border-indigo-500/30 transition-all duration-300">
+      {/* Cinematic Preview Wrapper */}
+      <CinematicVideoPreview 
+        videoUrl={episode.videoUrl} 
+        thumbnail={episode.thumbnail} 
+        duration={`${episode.duration} MIN`}
+        className="w-full md:w-64 aspect-video flex-shrink-0"
+      />
+
+      {/* Episode Info */}
+      <div className="flex-1 space-y-2 text-center md:text-left">
+        <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start">
+          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest px-2.5 py-1 bg-indigo-500/10 rounded-lg">Episode {episode.episodeNumber}</span>
+          {episode.isPremium && (
+            <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest px-2.5 py-1 bg-amber-500/10 rounded-lg border border-amber-500/20">Premium</span>
+          )}
+        </div>
+        <h4 className="text-xl font-black text-white group-hover:text-indigo-400 transition-colors">
+          {episode.title}
+        </h4>
+        <p className="text-slate-500 text-sm line-clamp-2 leading-relaxed max-w-2xl font-medium">
+          {episode.description || "No description provided for this episode."}
+        </p>
+      </div>
+
+      {/* Actions */}
+      <div className="flex md:flex-col gap-2 items-center justify-center pr-4">
+        <button
+          onClick={onEdit}
+          className="p-3 bg-slate-800 hover:bg-white/10 rounded-2xl text-slate-400 hover:text-white transition-all active:scale-90 border border-white/5"
+          title="Edit Metadata"
+        >
+          <Edit size={18} />
+        </button>
+        <button
+          onClick={onDelete}
+          className="p-3 bg-slate-800 hover:bg-rose-500/20 rounded-2xl text-slate-400 hover:text-rose-400 transition-all active:scale-90 border border-white/5"
+          title="Delete Episode"
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
     </div>
   );
 }

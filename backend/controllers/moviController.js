@@ -7,6 +7,8 @@ import { uploadToCloudinary } from "../methods/uploadToCloudinary.js";
 import seasonSchema from "../models/moviModals/sessionSchema.js";
 import episodeSchema from "../models/moviModals/episodSchema.js";
 import { createOrder } from "./notificationController.js";
+import sessionSchema from "../models/moviModals/sessionSchema.js";
+import movieSchema from "../models/moviModals/movieSchema.js";
 export const getMovies = async (req, res) => {
   try {
     const page = Number(req.params.page || req.query.page) || 1;
@@ -584,7 +586,7 @@ export const addSeason = async (req, res) => {
       ...req.body,
       banner: banner || req.body.banner
     });
-
+    await movies.updateOne({_id:series},{$inc:{totalSeasons:1}})
     res.status(201).json({
       message: season,
     });
@@ -616,7 +618,7 @@ export const updateSeason = async (req, res) => {
       { $set: updates },
       { new: true, runValidators: true }
     );
-
+    // await sessionSchema.findOne({series},{$inc:{totalEpisodes:1}})
     if (!season) {
       return res.status(404).json({ message: "Season not found" });
     }
@@ -636,7 +638,7 @@ export const addEpisode = async (req, res) => {
   try {
     const { series, season, episodeNumber, title, duration } = req.body;
     if (!series || !season || !episodeNumber || !title || !duration) {
-      return res.status(400).json({ message: "Missing required episode details" });
+      return res.status(400).json({ message:"Missing required episode details" });
     }
 
     let videoUrl = "";
@@ -655,7 +657,8 @@ export const addEpisode = async (req, res) => {
       videoUrl,
       thumbnail
     });
-
+    await sessionSchema.updateOne({series},{$inc:{totalEpisodes:1}})
+    await movies.updateOne({_id:series},{$inc:{totalEpisodes:1}})
     res.status(201).json({
       message: episode,
     });
@@ -774,7 +777,7 @@ export const deleteSeason = async (req, res) => {
 
     // Delete the season
     const season = await seasonSchema.findByIdAndDelete(_id);
-
+    await movies.updateOne({_id:season.series},{$inc:{totalEpisodes:-season.totalEpisodes,totalSeasons:-1}})
     if (!season) {
       return res.status(404).json({ message: "Season not found" });
     }
@@ -793,12 +796,14 @@ export const deleteSeason = async (req, res) => {
 export const deleteEpisode = async (req, res) => {
   try {
     const { _id } = req.params;
+    
     if (!_id) {
       return res.status(400).json({ message: "Episode ID is required" });
     }
 
     const episode = await episodeSchema.findByIdAndDelete(_id);
-
+    await sessionSchema.updateOne({_id:episode.series},{$inc:{totalEpisodes:-1}})
+    await movies.updateOne({_id:episode.series},{$inc:{totalEpisodes:-1}})
     if (!episode) {
       return res.status(404).json({ message: "Episode not found" });
     }
