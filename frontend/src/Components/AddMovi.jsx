@@ -187,8 +187,8 @@ export default function AddMovi({ toggle, setAddNewMoviToggle, setMovies }) {
                     className="w-full bg-slate-800/50 border border-slate-700/50 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-2xl px-4 py-3 appearance-none transition-all"
                   >
                      <option value="" className="bg-slate-900">-- Select Industry --</option>
-                    <option value="holywood" className="bg-slate-900">Hollywood</option>
-                    <option value="japanise" className="bg-slate-900">Japanese</option>
+                    <option value="hollywood" className="bg-slate-900">Hollywood</option>
+                    <option value="horror" className="bg-slate-900">Horror</option>
                     <option value="bollywood" className="bg-slate-900">Bollywood</option>
                   </select>
                 </div>
@@ -325,7 +325,7 @@ export default function AddMovi({ toggle, setAddNewMoviToggle, setMovies }) {
                   >
                     <option value="" className="bg-slate-900">-- Select Genre --</option> 
                     <option value="comedy" className="bg-slate-900">Comedy</option>
-                    <option value="romance" className="bg-slate-900">Romance</option>
+                    <option value="romance" className="bg-slate-900">Romantic</option>
                     <option value="action" className="bg-slate-900">Action</option>
                     <option value="thriller" className="bg-slate-900">Thriller</option>
                     <option value="horror" className="bg-slate-900">Horror</option>

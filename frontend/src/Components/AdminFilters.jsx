@@ -96,10 +96,10 @@ const handleMultiChange = (key, value) => {
   };
 
   /* ── Collapsed sidebar: just icons ── */
-  if (collapsed) {
+
+     if (collapsed) {
     return (
-      <aside className="hidden lg:flex flex-col items-center w-14 bg-slate-900/60 border-r border-white/[0.04] py-6 gap-4 shrink-0 sticky top-0  h-[calc(100vh-73px)] ">
-      
+      <aside className="hidden lg:flex flex-col items-center w-14 bg-slate-900/60 border-r border-white/[0.04] py-6 gap-4 shrink-0 sticky top-[73px] h-[calc(100vh-73px)]">
         <button
           onClick={() => setCollapsed(false)}
           className="p-2 rounded-lg text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all"
@@ -122,7 +122,8 @@ const handleMultiChange = (key, value) => {
 
   /* ── Full sidebar ── */
   return (
-    <aside className="sticky top-0 w-[260px] z-20 shrink-0 bg-gradient-to-b from-slate-900/80 to-slate-900/60 border-r border-white/[0.04] hidden lg:flex flex-col sticky top-[73px] h-[calc(100vh-73px)]">
+    <aside className="hide-scrollbar pt-24 sticky h-screen overflow-scroll w-[260px] z-20 shrink-0 bg-gradient-to-b from-slate-900/80 to-slate-900/60 border-r border-white/[0.04] hidden lg:flex flex-col ">
+    {/* sticky top-[73px] h-[calc(100vh-73px)] */}
       {/* custom scrollbar hide */}
 
       {/* Header */}
@@ -383,28 +384,28 @@ export { INITIAL_FILTERS };
 //   };
 
 //   /* ── Collapsed sidebar: just icons ── */
-//   if (collapsed) {
-//     return (
-//       <aside className="hidden lg:flex flex-col items-center w-14 bg-slate-900/60 border-r border-white/[0.04] py-6 gap-4 shrink-0 sticky top-[73px] h-[calc(100vh-73px)]">
-//         <button
-//           onClick={() => setCollapsed(false)}
-//           className="p-2 rounded-lg text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all"
-//           title="Show Filters"
-//         >
-//           <PanelLeft size={18} />
-//         </button>
-//         <div className="w-6 h-px bg-slate-800 mt-1" />
-//         <div className="relative p-2 rounded-lg text-slate-600">
-//           <SlidersHorizontal size={16} />
-//           {activeCount > 0 && (
-//             <span className="absolute -top-0.5 -right-0.5 size-4 rounded-full bg-indigo-600 text-[9px] text-white font-bold flex items-center justify-center">
-//               {activeCount}
-//             </span>
-//           )}
-//         </div>
-//       </aside>
-//     );
-//   }
+  // if (collapsed) {
+  //   return (
+  //     <aside className="hidden lg:flex flex-col items-center w-14 bg-slate-900/60 border-r border-white/[0.04] py-6 gap-4 shrink-0 sticky top-[73px] h-[calc(100vh-73px)]">
+  //       <button
+  //         onClick={() => setCollapsed(false)}
+  //         className="p-2 rounded-lg text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all"
+  //         title="Show Filters"
+  //       >
+  //         <PanelLeft size={18} />
+  //       </button>
+  //       <div className="w-6 h-px bg-slate-800 mt-1" />
+  //       <div className="relative p-2 rounded-lg text-slate-600">
+  //         <SlidersHorizontal size={16} />
+  //         {activeCount > 0 && (
+  //           <span className="absolute -top-0.5 -right-0.5 size-4 rounded-full bg-indigo-600 text-[9px] text-white font-bold flex items-center justify-center">
+  //             {activeCount}
+  //           </span>
+  //         )}
+  //       </div>
+  //     </aside>
+  //   );
+  // }
 
 //   /* ── Full sidebar ── */
 //   return (

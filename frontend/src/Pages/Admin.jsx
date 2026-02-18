@@ -247,7 +247,7 @@ async function logout() {
       )}
 
       {/* Premium Pagination Bar */}
-      {/* {!searchQuery && (
+      {/* {totalDocuments > 1 && !searchQuery && (
         <footer className="mt-auto border-t border-white/5 bg-slate-900/50 backdrop-blur-md">
           <div className="max-w-[1600px] mx-auto w-full px-6 lg:px-12 py-8 flex flex-col sm:flex-row justify-between items-center gap-6">
             <div className="text-slate-400 text-sm pl-[10rem] font-medium order-2 sm:order-1">
@@ -308,7 +308,7 @@ async function logout() {
             </div>
           </div>
         </footer>
-      )} */}
+      )}  */}
     </div>
   );
 }
