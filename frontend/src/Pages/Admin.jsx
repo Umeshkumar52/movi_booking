@@ -95,9 +95,9 @@ async function logout() {
   }, [page]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-200">
-      {/* Premium Sticky Header */}
-      <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-white/5 px-6 lg:px-12 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+    <div className="flex flex-col overflow-hidden min-h-screen bg-slate-950 text-slate-200">
+      {/* Premium Sticky Header  h-[calc(100vh-73px)]*/}
+      <header className="w-full fixed top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-white/5 px-6 lg:px-12 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-4">
           <div className="p-2 bg-indigo-600/10 rounded-xl">
              <h3 className="text-2xl lg:text-3xl bg-gradient-to-r from-white via-indigo-400 to-purple-400 bg-clip-text text-transparent font-black tracking-tight cursor-pointer" onClick={() => navigate('/')}>
@@ -143,9 +143,9 @@ async function logout() {
         <AdminFilters filters={filters} onChange={setFilters} />
 
         {/* Main Content Grid */}
-        <main className="flex-1 px-6 lg:px-10 py-8">
+        <main className="hide-scrollbar flex-1 h-screen pt-[8rem] overflow-auto space-y-[4rem] pt-8">
           {/* max-w-[1400px]  min-h-[70vh] */}
-          <div className=" mx-auto flex flex-wrap gap-8 justify-center min-h-[100vh]">
+          <div className=" mx-auto flex flex-wrap gap-8  lg:px-10 px-6 justify-center min-h-[100vh]">
             {movies.length > 0 ? (
               movies.map((item) => (
                 item.Category === "series" ? (
@@ -165,6 +165,70 @@ async function logout() {
               </div>
             )}
           </div>
+
+          {/* navigation */}
+         {!searchQuery && (
+        <footer className="mx-auto border-t border-white/5 bg-slate-900/50 backdrop-blur-md">
+          <div className="max-w-[1600px] mx-auto w-full px-6 lg:px-12 py-8 flex flex-col sm:flex-row justify-between items-center gap-6">
+            <div className="text-slate-400 text-sm font-medium order-2 sm:order-1">
+              Showing page <span className="text-indigo-400">{page}</span> of <span className="text-indigo-400">{totalDocuments}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 order-1 sm:order-2">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((prev) => (prev > 1 ? prev - 1 : prev))}
+                className="flex items-center justify-center size-10 rounded-xl border border-white/5 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-indigo-600/20 hover:border-indigo-500/50 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                aria-label="Previous Page"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              
+              <div className="flex items-center gap-2">
+                {Array.from({ length: totalDocuments }, (_, index) => {
+                  const pNum = index + 1;
+                  // Show current, first, last, and neighbors
+                  if (
+                    pNum === 1 || 
+                    pNum === totalDocuments || 
+                    (pNum >= page - 1 && pNum <= page + 1)
+                  ) {
+                    return (
+                      <button
+                        onClick={() => setPage(pNum)}
+                        key={pNum}
+                        className={`size-10 rounded-xl border transition-all font-bold flex items-center justify-center text-sm ${
+                          page === pNum 
+                            ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30 scale-105" 
+                            : "bg-slate-800/50 border-white/5 text-slate-400 hover:bg-slate-800 hover:text-indigo-400"
+                        }`}
+                      >
+                        {pNum}
+                      </button>
+                    );
+                  }
+                  // Show ellipsis
+                  if (pNum === page - 2 || pNum === page + 2) {
+                    return <span key={pNum} className="text-slate-600">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+
+              <button
+                disabled={page === totalDocuments}
+                onClick={() =>
+                  setPage((prev) => (prev < totalDocuments ? prev + 1 : prev))
+                }
+                className="flex items-center justify-center size-10 rounded-xl border border-white/5 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-indigo-600/20 hover:border-indigo-500/50 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                aria-label="Next Page"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+        </footer>
+      )}
         </main>
       </div>
 
@@ -183,7 +247,7 @@ async function logout() {
       )}
 
       {/* Premium Pagination Bar */}
-      {!searchQuery && (
+      {/* {!searchQuery && (
         <footer className="mt-auto border-t border-white/5 bg-slate-900/50 backdrop-blur-md">
           <div className="max-w-[1600px] mx-auto w-full px-6 lg:px-12 py-8 flex flex-col sm:flex-row justify-between items-center gap-6">
             <div className="text-slate-400 text-sm pl-[10rem] font-medium order-2 sm:order-1">
@@ -244,7 +308,7 @@ async function logout() {
             </div>
           </div>
         </footer>
-      )}
+      )} */}
     </div>
   );
 }

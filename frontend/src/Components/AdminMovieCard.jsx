@@ -66,7 +66,7 @@ export default function AdminMoviCard({ movie }) {
             <div className="p-1.5 bg-slate-800 rounded-lg">
               <Eye size={14} className="text-blue-400" />
             </div>
-            <span className="font-medium">{movie?.views || 50} Views</span>
+            <span className="font-medium">{movie?.views ||0} Views</span>
           </div>
         </div>
         
