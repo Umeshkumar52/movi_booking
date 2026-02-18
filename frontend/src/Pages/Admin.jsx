@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import useDebounce from "../utils/debounce";
 import AdminMovieCard from '../Components/AdminMovieCard'
+import SeriesCard from "../Components/series/SeriesCard";
 import instance from "../utils/axiosInstance";
 import { Search, Plus, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -124,18 +125,21 @@ async function logout() {
       {/* Main Content Grid */}
       <main className="max-w-[1600px] mx-auto w-full px-6 lg:px-12 py-8 flex flex-wrap gap-8 justify-center min-h-[70vh]">
         {movies.length > 0 ? (
-          movies.map((items) => (
-            <AdminMovieCard
-              key={items._id}
-              movie={items}
-            />
+          movies.map((item) => (
+            item.Category === "series" ? (
+              <SeriesCard key={item._id} series={item} />
+            ) : (
+              <AdminMovieCard key={item._id} movie={item} />
+            )
           ))
         ) : (
           <div className="h-96 flex flex-col items-center justify-center text-slate-500 gap-4">
              <div className="size-20 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800">
                 <Search size={40} className="opacity-20" />
              </div>
-             <p className="text-xl font-medium tracking-wide">No movies found in this timeline</p>
+             <p className="text-xl font-medium tracking-wide text-center px-6">
+                No cinematic masterpieces found in this timeline
+             </p>
           </div>
         )}
       </main>

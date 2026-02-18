@@ -1,19 +1,19 @@
-import { Star, Eye, Clock, Calendar } from "lucide-react";
+import { Star, Eye, Layers, PlayCircle, Calendar, CheckCircle2, Circle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function AdminMoviCard({ movie }) {
+export default function SeriesCard({ series }) {
   const navigate = useNavigate();
 
   return (
     <div
-      onClick={() => navigate(`/movie/details/${movie._id}`)}
-      className="group w-[22rem] rounded-[2.5rem] overflow-hidden bg-slate-900/40 border border-white/5 hover:border-indigo-500/50 hover:bg-slate-900 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-2"
+      onClick={() => navigate(`/series/details/${series._id}`)}
+      className={`group w-[22rem] rounded-[2.5rem] overflow-hidden bg-slate-900/40 border ${series.premium ? 'border-amber-500/30 ring-1 ring-amber-500/10' : 'border-white/5'} hover:border-indigo-500/50 hover:bg-slate-900 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-2`}
     >
       {/* Poster Section */}
       <div className="relative overflow-hidden aspect-[11/14]">
         <img
-          src={movie.poster}
-          alt={movie.title}
+          src={series.poster}
+          alt={series.title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
 
@@ -22,24 +22,25 @@ export default function AdminMoviCard({ movie }) {
         
         <div className="absolute top-4 inset-x-4 flex justify-between items-start">
           <div className="flex flex-col gap-2">
-            <span className="backdrop-blur-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full font-bold shadow-lg">
-              {movie.status || "active"}
+            <span className={`backdrop-blur-md ${series.isCompleted ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'} border text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full font-bold shadow-lg flex items-center gap-1.5`}>
+              {series.isCompleted ? <CheckCircle2 size={10} /> : <Circle size={10} className="animate-pulse" />}
+              {series.isCompleted ? "Completed" : "Ongoing"}
             </span>
-             {movie?.premium && (
+            {series.premium && (
                  <span className="backdrop-blur-md bg-amber-500/20 text-amber-500 border border-amber-500/30 text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full font-bold shadow-lg">
                     Premium
                  </span>
             )}
           </div>
           <span className="backdrop-blur-md bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full font-bold shadow-lg">
-            {movie.Category || "Movie"}
+            {series.Category || "Series"}
           </span>
         </div>
 
         {/* Rating Floating Badge */}
         <div className="absolute bottom-4 right-4 backdrop-blur-md bg-slate-900/80 border border-white/10 px-3 py-1.5 rounded-2xl flex items-center gap-1.5 text-yellow-400 shadow-xl group-hover:bg-yellow-400 group-hover:text-slate-950 transition-all duration-300">
           <Star size={14} fill="currentColor" strokeWidth={0} />
-          <span className="text-sm font-black">{movie.rating}</span>
+          <span className="text-sm font-black">{series.rating || "N/A"}</span>
         </div>
       </div>
 
@@ -47,32 +48,38 @@ export default function AdminMoviCard({ movie }) {
       <div className="p-6 space-y-4">
         <div className="space-y-1">
           <p className="text-[10px] uppercase tracking-[0.2em] text-indigo-400/80 font-bold">
-            {movie.genre?.split(',')[0] || "Cinematic"}
+            {series.genres?.split(',')[0] || "Series"} • {series.language}
           </p>
           <h2 className="text-xl font-black text-white group-hover:text-indigo-400 transition-colors line-clamp-1">
-            {movie.title}
+            {series.title}
           </h2>
         </div>
 
         <div className="grid grid-cols-2 gap-3 pt-2">
           <div className="flex items-center gap-2.5 text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
             <div className="p-1.5 bg-slate-800 rounded-lg">
-              <Clock size={14} className="text-indigo-400" />
+              <Layers size={14} className="text-indigo-400" />
             </div>
-            <span className="font-medium">{movie.duration}</span>
+            <span className="font-medium">{series.totalSeasons || 0} Seasons</span>
           </div>
 
           <div className="flex items-center gap-2.5 text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
             <div className="p-1.5 bg-slate-800 rounded-lg">
-              <Eye size={14} className="text-blue-400" />
+              <PlayCircle size={14} className="text-blue-400" />
             </div>
-            <span className="font-medium">{movie?.views || 50} Views</span>
+            <span className="font-medium">{series.totalEpisodes || 0} Episodes</span>
           </div>
         </div>
         
-        <div className="pt-2 flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-           <Calendar size={12} />
-           <span>Recent Release</span>
+        <div className="pt-2 flex items-center justify-between border-t border-white/5 pt-4">
+            <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+               <Calendar size={12} />
+               <span>{series.year || "2024"} Release</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                <Eye size={12} className="text-slate-500" />
+                <span>{series.views || 0}</span>
+            </div>
         </div>
       </div>
     </div>

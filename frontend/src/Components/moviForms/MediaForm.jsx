@@ -48,7 +48,7 @@ export default function MediaUploadForm({ uploadHandler, setFiles, setAddNewMovi
       <div className="space-y-6">
         {/* Full Movie Video */}
         <div className="space-y-4">
-          <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold ml-1">Master File (4K/HD)</label>
+          <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Master File (4K/HD)</label>
           <div className="relative rounded-3xl overflow-hidden bg-black aspect-video border border-white/5 shadow-2xl group">
             <video
               src={media.preview}
@@ -83,7 +83,7 @@ export default function MediaUploadForm({ uploadHandler, setFiles, setAddNewMovi
 
         {/* Poster */}
         <div className="space-y-4">
-          <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold ml-1">Primary Poster Art</label>
+          <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Primary Poster Art</label>
           <div className="relative group">
             <input 
               type="file" 

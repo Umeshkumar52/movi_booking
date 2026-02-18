@@ -19,6 +19,14 @@ import {
   getcrew,
   deleteActor,
   deleteCrew,
+  addSeason,
+  updateSeason,
+  deleteSeason,
+  addEpisode,
+  updateEpisode,
+  deleteEpisode,
+  getSeriesDetails,
+  getSeasonDetails,
 } from "../controllers/moviController.js";
 import allowRole from "../middilwares/allowRole.js";
 
@@ -39,7 +47,6 @@ router.post(
   ]),
   create,
 );
-
 
 router.get("/actor/get/:movie_id", getActor);
 router.get("/crew/getdata/:movie_id", getcrew);
@@ -63,7 +70,12 @@ router.patch(
   ]),
   updateMovieMedia,
 );
-router.put("/update/basics/:movie_id", allowRole("admin"), updateMovieBasics);
+router.put(
+  "/update/basics/:movie_id",
+  allowRole("admin"),
+  upload.single("poster"),
+  updateMovieBasics,
+);
 
 router.put(
   "/actor/update",
@@ -93,4 +105,44 @@ router.delete("/delete/:_id", allowRole("admin"), deleteMovie);
 router.delete("/actor/delete/:_id", allowRole("admin"), deleteActor);
 router.delete("/crew/delete/:_id", allowRole("admin"), deleteCrew);
 router.put("/update", allowRole("admin"), upload.single("file"), updateMovie);
+
+// Season & Episode Routes
+router.get("/series/details/:seriesId", allowRole("admin"), getSeriesDetails);
+router.get("/season/details/:seasonId", allowRole("admin"), getSeasonDetails);
+router.post(
+  "/season/add",
+  allowRole("admin"),
+  upload.single("banner"),
+  addSeason,
+);
+router.put(
+  "/season/update",
+  allowRole("admin"),
+  upload.single("banner"),
+  updateSeason,
+);
+
+router.post(
+  "/episode/add",
+  allowRole("admin"),
+  upload.fields([
+    { name: "video", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
+  addEpisode,
+);
+
+router.put(
+  "/episode/update",
+  allowRole("admin"),
+  upload.fields([
+    { name: "video", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
+  updateEpisode,
+);
+
+router.delete("/season/delete", allowRole("admin"), deleteSeason);
+router.delete("/episode/delete/:_id", allowRole("admin"), deleteEpisode);
+
 export default router;

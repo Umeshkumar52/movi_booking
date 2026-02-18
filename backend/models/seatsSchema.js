@@ -3,7 +3,7 @@ const seatSchema = new mongoose.Schema(
 {
     movi_id:{
         type: mongoose.SchemaTypes.ObjectId,
-        ref: "movie",
+        ref: "movies",
     },
     seatNumber:String,
     isBooked:Boolean,

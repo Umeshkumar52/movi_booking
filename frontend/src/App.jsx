@@ -5,6 +5,7 @@ import Home from "./Pages/Home";
 import Admin from "./Pages/Admin";
 import MoviDescription from "./Components/MoviDescription";
 import MoviDetails from './Pages/MoviDetails'
+import SeriesDetails from "./Pages/SeriesDetails";
 import PrivateRoute from "./Authentication/PrivateRoute";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -38,6 +39,7 @@ useEffect(()=>{
           }
         /> */}
         <Route path="/movie/details/:_id" element={<MoviDetails/>} />
+        <Route path="/series/details/:_id" element={<SeriesDetails />} />
       </Routes>
       <ToastContainer />
     </BrowserRouter>

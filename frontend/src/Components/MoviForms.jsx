@@ -1,212 +1,198 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { RxCross1 } from "react-icons/rx";
 import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import { Loader2, Plus, Send, Lock, Globe, CheckCircle2, Circle } from "lucide-react";
 import instance, { multiInstance } from "../utils/axiosInstance";
+
 export const EditBasicInfo = ({
-  
   data,
   setMovieData,
   setUpdateOverViewModal,
 }) => {
   const [formData, setFormData] = useState({});
-  
   const genresList = ["Action", "Comedy", "Romantic", "Drama", "Thriller", "Horror"];
   const languagesList = ["English", "Tamil", "Hindi", "Malayalam", "Telugu"];
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setIsUpdating(true);
     const updatedData = new FormData();
-    for (const key in formData) {
-      // Don't append if it's the preview URL or null poster (unless we want to clear it, but here we only send file if exists)
-      if (key === 'preview') continue;
-      if (key === 'poster' && !(formData[key] instanceof File)) continue;
-      
-      updatedData.append(key, formData[key]);
+    const allowedFields = [
+       'main_title', 'title', 'Category', 'year', 'duration', 
+       'rating', 'price', 'genres', 'language', 'storyline', 'releaseDate'
+    ];
+    allowedFields.forEach(key => {
+      if (formData[key] !== undefined && formData[key] !== null) {
+        updatedData.append(key, formData[key]);
+      }
+    });
+    if (formData.poster instanceof File) {
+      updatedData.append("poster", formData.poster);
     }
 
     try {
-      const {data: responseData} = await instance.put(`movies/update/basics/${data._id}`, updatedData);
+      const {data: responseData} = await multiInstance.put(`movies/update/basics/${data._id}`, updatedData);
       setMovieData((prev) => ({ ...prev, ...responseData.message }));
       setUpdateOverViewModal(null);
       toast.success("Details updated successfully");
     } catch (error) {
       toast.error(error?.response?.data?.message || "Update failed");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   useEffect(() => {
     setFormData({ ...data });
   }, [data]);
-   console.log(formData)
-  return (
-    <div className="fixed inset-0 z-[1000] bg-slate-950/80">
-      <div className="hide-scrollbar w-full h-full overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center py-16 px-4">
-          <form className="relative w-[700px] border border-slate-700 bg-slate-900 shadow-2xl rounded-xl p-8">
-            <RxCross1
-              className="absolute top-4 right-4 text-3xl text-slate-400 hover:text-red-500 cursor-pointer transition-colors"
-              onClick={() => setUpdateOverViewModal(null)}
-            />
-            <h2 className="text-2xl font-semibold mb-6 text-white">Edit Basic Info</h2>
 
-            {/* Poster Preview */}
-            <div className="flex justify-center mb-6">
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = "unset"; };
+  }, []);
+
+  return createPortal(
+    <div className="fixed z-[2000] inset-0 bg-slate-950/90 backdrop-blur-sm">
+      <div className="hide-scrollbar w-full h-full overflow-y-auto">
+        <div className="flex min-h-full items-start justify-center pt-24 pb-16 px-4">
+          <form className="relative w-full max-w-2xl bg-slate-900 border border-white/10 shadow-2xl rounded-[2.5rem] p-8 lg:p-12 animate-in fade-in zoom-in-95 duration-300">
+            <button
+              type="button"
+              className="absolute top-8 right-8 text-slate-400 hover:text-white transition-colors"
+              onClick={() => setUpdateOverViewModal(null)}
+            >
+              <RxCross1 size={24} />
+            </button>
+
+            <div className="mb-10 text-center">
+              <h2 className="text-3xl font-black text-white mb-2">Edit Production Details</h2>
+              <p className="text-slate-500 font-medium">Update the cinematic metadata of your masterpiece</p>
+            </div>
+
+            <div className="flex justify-center mb-10">
               <label className="cursor-pointer group relative">
                 <img
-                  src={
-                    formData.preview ||
-                    data.poster ||
-                    "https://via.placeholder.com/150"
-                  }
+                  src={formData.preview || data.poster || "https://via.placeholder.com/150"}
                   alt="poster"
-                  className="w-40 h-56 object-cover rounded-lg border-2 border-slate-700 transition-opacity group-hover:opacity-50"
+                  className="w-40 h-56 object-cover rounded-2xl border border-white/10 transition-transform group-hover:scale-[1.02]"
                 />
-                {/* <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                   <p className="bg-slate-950/60 px-2 py-1 rounded text-xs text-white">Change Poster</p>
-                </div> */}
-                {/* <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      setFormData(prev => ({
-                        ...prev,
-                        poster: file,
-                        preview: URL.createObjectURL(file)
-                      }));
-                    }
-                  }}
-                /> */}
               </label>
             </div>
 
-            {/* Category + Industry (Main Title) */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 uppercase font-bold px-1">Category</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Category</label>
                 <select
                   name="Category"
                   value={formData.Category || formData.category}
                   onChange={handleChange}
-                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
                 >
                   <option value="movie">Movie</option>
                   <option value="series">Series</option>
                 </select>
               </div>
-
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 uppercase font-bold px-1">Industry</label>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Production Hub</label>
                 <select
                   name="main_title"
                   value={formData.main_title}
                   onChange={handleChange}
-                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
                 >
                   <option value="">Select Industry</option>
                   <option value="holywood">Hollywood</option>
+                  <option value="bollywood">Bollywood</option>
                   <option value="japanise">Japanese</option>
                 </select>
               </div>
             </div>
 
-            {/* Title */}
-            <div className="space-y-1 mb-4">
-              <label className="text-xs text-slate-500 uppercase font-bold px-1">Movie Title</label>
+            <div className="space-y-2 mb-6">
+              <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Official Master Title</label>
               <input
                 name="title"
-                placeholder="Title"
                 value={formData.title}
                 onChange={handleChange}
-                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
+                className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold placeholder-slate-600"
               />
             </div>
 
-            {/* Year + Duration */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 uppercase font-bold px-1">Year</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Launch Year</label>
                 <input
                   name="year"
                   type="number"
-                  placeholder="Year"
                   value={formData.year}
                   onChange={handleChange}
-                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
+                  className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 uppercase font-bold px-1">Duration (Min)</label>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Film Duration (Min)</label>
                 <input
                   name="duration"
                   type="number"
-                  placeholder="Duration"
                   value={formData.duration}
                   onChange={handleChange}
-                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
+                  className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
                 />
               </div>
             </div>
 
-            {/* Rating + Price */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 uppercase font-bold px-1">Rating</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">IMDb Rating</label>
                 <input
                   name="rating"
                   type="number"
                   step="0.1"
-                  placeholder="Rating"
                   value={formData.rating}
                   onChange={handleChange}
-                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
+                  className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 uppercase font-bold px-1">Price</label>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Access Price</label>
                 <input
                   name="price"
                   type="number"
-                  placeholder="Price"
                   value={formData.price}
                   onChange={handleChange}
-                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
+                  className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
                 />
               </div>
             </div>
 
-            {/* Genres + Languages */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 uppercase font-bold px-1">Genre</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Core Genre</label>
                 <select
                   name="genres"
                   value={formData.genres}
                   onChange={handleChange}
-                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
                 >
                   <option value="">Select Genre</option>
                   {genresList.map(g => <option key={g} value={g.toLowerCase()}>{g}</option>)}
                 </select>
               </div>
-
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 uppercase font-bold px-1">Language</label>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Primary Language</label>
                 <select
                   name="language"
-                  value={formData.language || formData.languages?.[0]}
+                  value={formData.language}
                   onChange={handleChange}
-                  className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
                 >
                   <option value="">Select Language</option>
                   {languagesList.map(l => <option key={l} value={l.toLowerCase()}>{l}</option>)}
@@ -214,35 +200,38 @@ export const EditBasicInfo = ({
               </div>
             </div>
 
-            {/* Storyline */}
-            <div className="space-y-1 mb-6">
-              <label className="text-xs text-slate-500 uppercase font-bold px-1">Storyline</label>
+            <div className="space-y-2 mb-10">
+              <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Master Storyline</label>
               <textarea
                 name="storyline"
                 rows="4"
-                placeholder="Storyline"
                 value={formData.storyline}
                 onChange={handleChange}
-                className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500 resize-none"
+                className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium placeholder-slate-600 resize-none leading-relaxed"
               />
             </div>
 
-            {/* Submit */}
             <button
               onClick={handleSubmit}
-              type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
+              disabled={isUpdating}
+              className="w-full bg-gradient-to-br from-indigo-600 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white py-5 rounded-2xl font-black shadow-2xl shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Update Movie Details
+              {isUpdating ? (
+                <>
+                  <Loader2 className="size-5 animate-spin" />
+                  <span>Syncing Changes...</span>
+                </>
+              ) : (
+                "Update Production Specs"
+              )}
             </button>
           </form>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
-
-// update movi media
 
 export const UpdateMovieMedia = ({
   setMovieData,
@@ -254,15 +243,12 @@ export const UpdateMovieMedia = ({
   const [media, setMedia] = useState({
     videoFile: null,
     thumbnail: null,
-    videoPreview: "", // existing or new preview
+    videoPreview: "",
     thumbName: "No file selected.",
   });
-
-  // Simulate existing video from backend
-  // Replace with your backend URL
+  const [isUpdating, setIsUpdating] = useState(false);
   const existingVideoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
 
-  // Handle video change
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -274,7 +260,6 @@ export const UpdateMovieMedia = ({
     }
   };
 
-  // Handle thumbnail
   const handleThumbChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -286,116 +271,107 @@ export const UpdateMovieMedia = ({
     }
   };
 
-  // Submit to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (!media.videoFile && !media.thumbnail) return toast.info("No changes to update");
+    setIsUpdating(true);
     const formData = new FormData();
-    formData.append("media", media.videoFile);
-    formData.append("poster", media.thumbnail);
-    const { data } = await multiInstance.patch(
-      `/movies/update/media/${_id}`,
-      formData,
-    );
-    console.log(data);
-    setMovieData((prev) => ({
-      ...prev,
-      media: data.message.media,
-      poster: data.message.poster,
-    }));
-    setUpdateMovieMediaModal(null);
+    if (media.videoFile) formData.append("media", media.videoFile);
+    if (media.thumbnail) formData.append("poster", media.thumbnail);
+    try {
+      const { data } = await multiInstance.patch(`/movies/update/media/${_id}`, formData);
+      setMovieData((prev) => ({ ...prev, media: data.message.media, poster: data.message.poster }));
+      setUpdateMovieMediaModal(null);
+      toast.success("Media updated successfully");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Media update failed");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
-  return (
-    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex justify-center items-center">
-      <div className="relative z-50 p-10 flex flex-col items-center justify-center">
-        <form
-          onSubmit={handleSubmit}
-          className="w-[650px] z-50 shadow-2xl bg-slate-900 border border-slate-700 rounded-xl p-8"
-        >
-          <h2 className="text-2xl font-semibold mb-6 text-white">Update Movie Media</h2>
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = "unset"; };
+  }, []);
 
-          {/* Video Preview Box */}
-          <div className="border-2 border-dashed border-slate-700 rounded-xl p-4 mb-6 bg-slate-800/50">
-            <div className="bg-black z-10 rounded-lg overflow-hidden">
-              <video
-                controls
-                className="w-full  h-64 object-cover"
-                src={
-                  media.videoPreview ||
-                  updateMovieMediaModal?.media ||
-                  existingVideoUrl
-                }
-              />
+  return createPortal(
+    <div className="fixed z-[2000] inset-0 bg-slate-950/90 backdrop-blur-sm">
+      <div className="hide-scrollbar w-full h-full overflow-y-auto">
+        <div className="flex min-h-full items-start justify-center pt-24 pb-16 px-4">
+          <form
+            onSubmit={handleSubmit}
+            className="relative w-full max-w-2xl bg-slate-900 border border-white/10 shadow-2xl rounded-[2.5rem] p-8 lg:p-12 animate-in fade-in zoom-in-95 duration-300"
+          >
+            <button
+              type="button"
+              className="absolute top-8 right-8 text-slate-400 hover:text-white transition-colors"
+              onClick={() => setUpdateMovieMediaModal(null)}
+            >
+              <RxCross1 size={24} />
+            </button>
+
+            <div className="mb-10 text-center">
+              <h2 className="text-3xl font-black text-white mb-2">Update Visual Sequence</h2>
+              <p className="text-slate-500 font-medium">Coordinate the primary video master and key art</p>
             </div>
 
-            <div className="flex justify-between items-center mt-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-500/10 p-2 rounded-md text-blue-400">📄</div>
-                <span className="font-medium text-slate-300">Existing Movie</span>
+            <div className="space-y-4 mb-8">
+              <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Master Video File</label>
+              <div className="relative rounded-3xl overflow-hidden bg-black aspect-video border border-white/10 shadow-2xl group">
+                <video
+                  src={media.videoPreview || updateMovieMediaModal?.media || existingVideoUrl}
+                  controls
+                  className="w-full h-full object-contain"
+                />
               </div>
+              <div className="relative group">
+                <input type="file" hidden ref={fileRef} accept="video/*" onChange={handleVideoChange} />
+                <button
+                  type="button"
+                  onClick={() => fileRef.current.click()}
+                  className="w-full bg-slate-800/50 border border-slate-700/50 text-slate-400 p-4 rounded-2xl hover:border-indigo-500/50 transition-all font-bold text-xs uppercase tracking-widest"
+                >
+                  Change Video Master
+                </button>
+              </div>
+            </div>
 
+            <div className="space-y-4 mb-10">
+              <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Key Art / Thumbnail</label>
+              <div className="flex items-center gap-4">
+                <label className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 px-6 py-3 rounded-2xl cursor-pointer transition-all font-bold text-xs uppercase tracking-widest">
+                  Browse Art
+                  <input type="file" hidden accept="image/*" onChange={handleThumbChange} />
+                </label>
+                <span className="text-slate-400 text-sm font-medium">{media.thumbName}</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4 pt-4">
               <button
                 type="button"
-                onClick={() => fileRef.current.click()}
-                className="text-blue-400 hover:text-blue-300 font-medium"
+                onClick={() => setUpdateMovieMediaModal(null)}
+                className="px-8 py-4 bg-slate-800 text-slate-400 font-bold rounded-2xl hover:bg-slate-700 transition-all active:scale-95"
               >
-                Change
+                Cancel
               </button>
-
-              <input
-                type="file"
-                hidden
-                ref={fileRef}
-                accept="video/*"
-                onChange={handleVideoChange}
-              />
+              <button
+                type="submit"
+                disabled={isUpdating}
+                className="px-10 py-4 bg-gradient-to-br from-indigo-600 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white font-black rounded-2xl transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center gap-2"
+              >
+                {isUpdating ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
+                Sync Media
+              </button>
             </div>
-          </div>
-
-          {/* Thumbnail Upload */}
-          <div className="mb-8">
-            <p className="mb-2 font-medium text-slate-300">Thumbnail</p>
-
-            <div className="flex items-center gap-4">
-              <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
-                Browse...
-                <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={handleThumbChange}
-                />
-              </label>
-
-              <span className="text-slate-400">{media.thumbName}</span>
-            </div>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex justify-end gap-4">
-            <button
-              onClick={() => setUpdateMovieMediaModal((prev) => !prev)}
-              type="button"
-              className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              Update
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
-
-// update trailer data
 
 export const UpdateTrailer = ({
   setMovieData,
@@ -407,15 +383,12 @@ export const UpdateTrailer = ({
   const [media, setMedia] = useState({
     videoFile: null,
     thumbnail: null,
-    videoPreview: "", // existing or new preview
+    videoPreview: "",
     thumbName: "No file selected.",
   });
-
-  // Simulate existing video from backend
-  // Replace with your backend URL
+  const [isUpdating, setIsUpdating] = useState(false);
   const existingVideoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
 
-  // Handle video change
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -427,7 +400,6 @@ export const UpdateTrailer = ({
     }
   };
 
-  // Handle thumbnail
   const handleThumbChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -439,688 +411,434 @@ export const UpdateTrailer = ({
     }
   };
 
-  // Submit to backend
-  const handleSubmit =async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (!media.videoFile && !media.thumbnail) return toast.info("No changes to update");
+    setIsUpdating(true);
     const formData = new FormData();
-    formData.append("trailerMedia", media.videoFile);
-    formData.append("trailerPoster", media.thumbnail);
-    const { data } =await multiInstance.patch(
-      `/movies/update/trailer/${_id}`,
-      formData,
-    );
-    setMovieData((prev) => ({ ...prev,trailer:data.message.trailer }));
-    setUpdateTrailerModal(prev=>!prev);
+    if (media.videoFile) formData.append("trailerMedia", media.videoFile);
+    if (media.thumbnail) formData.append("trailerPoster", media.thumbnail);
+    try {
+      const { data } = await multiInstance.patch(`/movies/update/trailer/${_id}`, formData);
+      setMovieData((prev) => ({ ...prev, trailer: data.message.trailer }));
+      setUpdateTrailerModal(prev => !prev);
+      toast.success("Trailer updated successfully");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Trailer update failed");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
-  return (
-    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex justify-center items-center">
-      <div className="relative z-50 p-10 flex flex-col items-center justify-center">
-        <form
-          onSubmit={handleSubmit}
-          className="w-[650px] z-50 shadow-2xl bg-slate-900 border border-slate-700 rounded-xl p-8"
-        >
-          <h2 className="text-2xl font-semibold mb-6 text-white">Update Trailer media</h2>
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = "unset"; };
+  }, []);
 
-          {/* Video Preview Box */}
-          <div className="border-2 border-dashed border-slate-700 rounded-xl p-4 mb-6 bg-slate-800/50">
-            <div className="bg-black z-10 rounded-lg overflow-hidden">
-              <video
-                controls
-                className="w-full  h-64 object-cover"
-                src={media.videoPreview || data?.media || existingVideoUrl}
-              />
+  return createPortal(
+    <div className="fixed z-[2000] inset-0 bg-slate-950/90 backdrop-blur-sm">
+      <div className="hide-scrollbar w-full h-full overflow-y-auto">
+        <div className="flex min-h-full items-start justify-center pt-24 pb-16 px-4">
+          <form
+            onSubmit={handleSubmit}
+            className="relative w-full max-w-2xl bg-slate-900 border border-white/10 shadow-2xl rounded-[2.5rem] p-8 lg:p-12 animate-in fade-in zoom-in-95 duration-300"
+          >
+            <button
+              type="button"
+              className="absolute top-8 right-8 text-slate-400 hover:text-white transition-colors"
+              onClick={() => setUpdateTrailerModal(null)}
+            >
+              <RxCross1 size={24} />
+            </button>
+
+            <div className="mb-10 text-center">
+              <h2 className="text-3xl font-black text-white mb-2">Refine Promo Trailer</h2>
+              <p className="text-slate-500 font-medium">Update the promotional sequence for your cinematic series</p>
             </div>
 
-            <div className="flex justify-between items-center mt-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-500/10 p-2 rounded-md text-blue-400">📄</div>
-                <span className="font-medium text-slate-300">Existing Trailer</span>
+            <div className="space-y-4 mb-8">
+              <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Trailer Video</label>
+              <div className="relative rounded-3xl overflow-hidden bg-black aspect-video border border-white/10 shadow-2xl group">
+                <video src={media.videoPreview || data?.media || existingVideoUrl} controls className="w-full h-full object-contain" />
               </div>
-
               <button
                 type="button"
                 onClick={() => fileRef.current.click()}
-                className="text-blue-400 hover:text-blue-300 font-medium"
+                className="w-full bg-slate-800/50 border border-slate-700/50 text-slate-400 p-4 rounded-2xl hover:border-indigo-500/50 transition-all font-bold text-xs uppercase tracking-widest"
               >
-                Change
+                Change Trailer Footage
               </button>
-
-              <input
-                type="file"
-                hidden
-                ref={fileRef}
-                accept="video/*"
-                onChange={handleVideoChange}
-              />
+              <input type="file" hidden ref={fileRef} accept="video/*" onChange={handleVideoChange} />
             </div>
-          </div>
 
-          {/* Thumbnail Upload */}
-          <div className="mb-8">
-            <p className="mb-2 font-medium text-slate-300">Thumbnail</p>
-
-            <div className="flex items-center gap-4">
-              <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
-                Browse...
-                <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={handleThumbChange}
-                />
-              </label>
-
-              <span className="text-slate-400">{media.thumbName}</span>
+            <div className="space-y-4 mb-10">
+              <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Trailer Key Art</label>
+              <div className="flex items-center gap-4">
+                <label className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 px-6 py-3 rounded-2xl cursor-pointer transition-all font-bold text-xs uppercase tracking-widest">
+                  Browse Poster
+                  <input type="file" hidden accept="image/*" onChange={handleThumbChange} />
+                </label>
+                <span className="text-slate-400 text-sm font-medium">{media.thumbName}</span>
+              </div>
             </div>
-          </div>
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-4">
-            <button
-              onClick={() => setUpdateTrailerModal((prev) => !prev)}
-              type="button"
-              className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              Update
-            </button>
-          </div>
-        </form>
+            <div className="flex justify-end gap-4 pt-4">
+              <button
+                type="button"
+                onClick={() => setUpdateTrailerModal(null)}
+                className="px-8 py-4 bg-slate-800 text-slate-400 font-bold rounded-2xl hover:bg-slate-700 transition-all active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isUpdating}
+                className="px-10 py-4 bg-gradient-to-br from-indigo-600 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white font-black rounded-2xl transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center gap-2"
+              >
+                {isUpdating ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
+                Sync Trailer
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
-
-// add cast data
 
 export const AddCrew = ({ setCrewData, movie_id, setaddCrewModal }) => {
-  const [crew, setCrew] = useState({
-    name: "",
-    role: "",
-    description: "",
-    image: null,
-    imageName: "No file selected.",
-  });
-
-  // Handle text inputs
+  const [crew, setCrew] = useState({ name: "", role: "", description: "", image: null, imageName: "No file selected." });
+  const [isUpdating, setIsUpdating] = useState(false);
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name === "description" && value.length > 50) return;
-
-    setCrew((prev) => ({ ...prev, [name]: value }));
+    setCrew(prev => ({ ...prev, [name]: value }));
   };
-
-  // Handle image
   const handleImage = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setCrew((prev) => ({
-        ...prev,
-        image: file,
-        imageName: file.name,
-      }));
-    }
+    if (file) setCrew(prev => ({ ...prev, image: file, imageName: file.name }));
   };
-
-  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (!crew.name || !crew.role) return toast.warning("Name and Role are required");
+    setIsUpdating(true);
     const formData = new FormData();
     formData.append("name", crew.name);
     formData.append("role", crew.role);
     formData.append("description", crew.description);
-    formData.append("avatar", crew.image);
+    if (crew.image) formData.append("avatar", crew.image);
     formData.append("movie_id", movie_id);
-    console.log("Sending 👉", crew);
-
-    const { data } = await multiInstance.post("/movies/crew/add", formData);
-    setCrewData((prev) => [data.message,...prev]);
-    setaddCrewModal((prev) => !prev);
+    try {
+      const { data } = await multiInstance.post("/movies/crew/add", formData);
+      setCrewData(prev => [data.message, ...prev]);
+      setaddCrewModal(false);
+      toast.success("Crew member added successfully");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to add crew");
+    } finally { setIsUpdating(false); }
   };
 
-  return (
-    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex items-center justify-center">
-      <form
-        onSubmit={handleSubmit}
-        className="w-[600px] bg-slate-900 border border-slate-700 rounded-xl shadow-lg p-8"
-      >
-        <h2 className="text-2xl font-semibold mb-8 text-white">Add New Crew</h2>
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = "unset"; };
+  }, []);
 
-        {/* Name */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">Name</label>
-          <input
-            type="text"
-            name="name"
-            placeholder="Enter name"
-            value={crew.name}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-          />
-        </div>
-
-        {/* Role */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">Role</label>
-          <input
-            type="text"
-            name="role"
-            placeholder="Enter role"
-            value={crew.role}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-          />
-        </div>
-
-        {/* Description */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">
-            Description (optional, max 50 chars)
-          </label>
-          <textarea
-            name="description"
-            placeholder="Enter description"
-            value={crew.description}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-            rows="3"
-          />
-          <p className="text-sm text-slate-500 mt-1">
-            {crew.description.length}/50
-          </p>
-        </div>
-
-        {/* Image */}
-        <div className="mb-8">
-          <label className="block mb-2 font-medium text-slate-300">Image</label>
-          <div className="flex items-center gap-4">
-            <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
-              Browse...
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={handleImage}
-              />
-            </label>
-            <span className="text-slate-400">{crew.imageName}</span>
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end gap-4">
-          <button
-            onClick={() => setaddCrewModal((prev) => !prev)}
-            type="button"
-            className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
+  return createPortal(
+    <div className="fixed z-[2000] inset-0 bg-slate-950/90 backdrop-blur-sm">
+      <div className="hide-scrollbar w-full h-full overflow-y-auto">
+        <div className="flex min-h-full items-start justify-center pt-24 pb-16 px-4">
+          <form
+            onSubmit={handleSubmit}
+            className="relative w-full max-w-2xl bg-slate-900 border border-white/10 shadow-2xl rounded-[2.5rem] p-8 lg:p-12 animate-in fade-in zoom-in-95 duration-300"
           >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Add
-          </button>
+            <button type="button" className="absolute top-8 right-8 text-slate-400 hover:text-white" onClick={() => setaddCrewModal(false)}>
+              <RxCross1 size={24} />
+            </button>
+            <div className="mb-10 text-center">
+              <h2 className="text-3xl font-black text-white mb-2">Recruit New Crew</h2>
+              <p className="text-slate-500 font-medium">Expand your production team with new talent</p>
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Name</label>
+                <input name="name" value={crew.name} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Role</label>
+                <input name="role" value={crew.role} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Bio (Max 50 Chars)</label>
+                <textarea name="description" value={crew.description} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" rows="3" />
+              </div>
+              <div className="space-y-4 mb-10">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Avatar Art</label>
+                <div className="flex items-center gap-4">
+                  <label className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-6 py-3 rounded-2xl cursor-pointer font-bold text-xs uppercase tracking-widest">
+                    Select Avatar
+                    <input type="file" hidden accept="image/*" onChange={handleImage} />
+                  </label>
+                  <span className="text-slate-400 text-sm">{crew.imageName}</span>
+                </div>
+              </div>
+            </div>
+            <button type="submit" disabled={isUpdating} className="w-full bg-gradient-to-br from-indigo-600 to-purple-700 text-white py-5 rounded-2xl font-black transition-all active:scale-95 flex items-center justify-center gap-2 mt-8">
+              {isUpdating ? <Loader2 className="animate-spin" /> : <Plus />} Recruit Member
+            </button>
+          </form>
         </div>
-      </form>
-    </div>
+      </div>
+    </div>,
+    document.body
   );
 };
-
-// Add new cast
 
 export const AddCast = ({ setActor, movie_id, setAddCastModal }) => {
-  const [crew, setCrew] = useState({
-    name: "",
-    role: "",
-    description: "",
-    image: null,
-    imageName: "No file selected.",
-  });
-
-  // Handle text inputs
+  const [crew, setCrew] = useState({ name: "", role: "", description: "", image: null, imageName: "No file selected." });
+  const [isUpdating, setIsUpdating] = useState(false);
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name === "description" && value.length > 50) return;
-
-    setCrew((prev) => ({ ...prev, [name]: value }));
+    setCrew(prev => ({ ...prev, [name]: value }));
   };
-
-  // Handle image
   const handleImage = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setCrew((prev) => ({
-        ...prev,
-        image: file,
-        imageName: file.name,
-      }));
-    }
+    if (file) setCrew(prev => ({ ...prev, image: file, imageName: file.name }));
   };
-
-  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (!crew.name || !crew.role) return toast.warning("Name and Role are required");
+    setIsUpdating(true);
     const formData = new FormData();
     formData.append("name", crew.name);
     formData.append("role", crew.role);
     formData.append("description", crew.description);
-    formData.append("avatar", crew.image);
+    if (crew.image) formData.append("avatar", crew.image);
     formData.append("movie_id", movie_id);
-  // console.log(crew.image)
-    const { data } = await multiInstance.post("/movies/actor/add", formData);
-    // console.log("Sending 👉", formData);
-    setActor((prev) => [data.message,...prev]);
-    setAddCastModal((prev) => !prev);
-    
+    try {
+      const { data } = await multiInstance.post("/movies/actor/add", formData);
+      setActor(prev => [data.message, ...prev]);
+      setAddCastModal(false);
+      toast.success("Cast member added successfully");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to add cast");
+    } finally { setIsUpdating(false); }
   };
 
-  return (
-    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex items-center justify-center">
-      <form className="w-[600px] bg-slate-900 border border-slate-700 rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-semibold mb-8 text-white">Add New Cast</h2>
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = "unset"; };
+  }, []);
 
-        {/* Name */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">Name</label>
-          <input
-            type="text"
-            name="name"
-            placeholder="Enter name"
-            value={crew.name}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-          />
+  return createPortal(
+    <div className="fixed z-[2000] inset-0 bg-slate-950/90 backdrop-blur-sm">
+      <div className="hide-scrollbar w-full h-full overflow-y-auto">
+        <div className="flex min-h-full items-start justify-center pt-24 pb-16 px-4">
+          <form className="relative w-full max-w-2xl bg-slate-900 border border-white/10 shadow-2xl rounded-[2.5rem] p-8 lg:p-12 animate-in fade-in zoom-in-95 duration-300">
+            <button type="button" className="absolute top-8 right-8 text-slate-400 hover:text-white" onClick={() => setAddCastModal(false)}>
+              <RxCross1 size={24} />
+            </button>
+            <div className="mb-10 text-center">
+              <h2 className="text-3xl font-black text-white mb-2">Enlist New Cast</h2>
+              <p className="text-slate-500 font-medium">Introduce new characters to your series narrative</p>
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Name</label>
+                <input name="name" value={crew.name} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Role</label>
+                <input name="role" value={crew.role} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Bio (Max 50 Chars)</label>
+                <textarea name="description" value={crew.description} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" rows="3" />
+              </div>
+              <div className="space-y-4 mb-10">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Headshot / Avatar</label>
+                <div className="flex items-center gap-4">
+                  <label className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-6 py-3 rounded-2xl cursor-pointer font-bold text-xs uppercase tracking-widest">
+                    Select File
+                    <input type="file" hidden accept="image/*" onChange={handleImage} />
+                  </label>
+                  <span className="text-slate-400 text-sm">{crew.imageName}</span>
+                </div>
+              </div>
+            </div>
+            <button type="button" onClick={handleSubmit} disabled={isUpdating} className="w-full bg-gradient-to-br from-indigo-600 to-purple-700 text-white py-5 rounded-2xl font-black transition-all active:scale-95 flex items-center justify-center gap-2 mt-8">
+              {isUpdating ? <Loader2 className="animate-spin" /> : <Plus />} Enlist Character
+            </button>
+          </form>
         </div>
-
-        {/* Role */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">Role</label>
-          <input
-            type="text"
-            name="role"
-            placeholder="Enter role"
-            value={crew.role}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-          />
-        </div>
-
-        {/* Description */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">
-            Description (optional, max 50 chars)
-          </label>
-          <textarea
-            name="description"
-            placeholder="Enter description"
-            value={crew.description}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-            rows="3"
-          />
-          <p className="text-sm text-slate-500 mt-1">
-            {crew.description.length}/50
-          </p>
-        </div>
-
-        {/* Image */}
-        <div className="mb-8">
-          <label className="block mb-2 font-medium text-slate-300">Image</label>
-          <div className="flex items-center gap-4">
-            <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
-              Browse...
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={handleImage}
-              />
-            </label>
-            <span className="text-slate-400">{crew.imageName}</span>
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end gap-4">
-          <button
-            onClick={() => setAddCastModal((prev) => !prev)}
-            type="button"
-            className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
-          >
-            Cancel
-          </button>
-
-          <button
-            onClick={handleSubmit}
-            type="submit"
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Add
-          </button>
-        </div>
-      </form>
-    </div>
+      </div>
+    </div>,
+    document.body
   );
 };
 
-// update cast data
-
-export const UpdateCrew = ({
-  updatedata,
-  setCrewData,
-  updateCrewData,
-  setUpdateCrewModal,
-}) => {
-  const [crew, setCrew] = useState({
-    _id: "",
-    name: "",
-    role: "",
-    description: "",
-    image: null,
-    imageName: "No file selected.",
-  });
-
-  // Handle text inputs
+export const UpdateCrew = ({ updatedata, setCrewData, updateCrewData, setUpdateCrewModal }) => {
+  const [crew, setCrew] = useState({ _id: "", name: "", role: "", description: "", image: null, imageName: "No file selected." });
+  const [isUpdating, setIsUpdating] = useState(false);
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name === "description" && value.length > 50) return;
-
-    setCrew((prev) => ({ ...prev, [name]: value }));
+    setCrew(prev => ({ ...prev, [name]: value }));
   };
-
-  // Handle image
   const handleImage = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setCrew((prev) => ({
-        ...prev,
-        image: file,
-        imageName: file.name,
-      }));
-    }
+    if (file) setCrew(prev => ({ ...prev, image: file, imageName: file.name }));
   };
-
-  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setIsUpdating(true);
     const formData = new FormData();
     formData.append("name", crew.name);
     formData.append("role", crew.role);
     formData.append("description", crew.description);
-    formData.append("avatar", crew.image);
+    if (crew.image instanceof File) formData.append("avatar", crew.image);
     formData.append("_id", crew._id);
-    const { data } = await multiInstance.put(
-      `/movies/crew/update?_id=${crew._id}`,
-      formData,
-    );
-    
-   updatedata(data.message)
-    setUpdateCrewModal(null);
+    try {
+      const { data } = await multiInstance.put(`/movies/crew/update?_id=${crew._id}`, formData);
+      updatedata(data.message);
+      setUpdateCrewModal(null);
+      toast.success("Crew member updated successfully");
+    } catch (error) { toast.error(error?.response?.data?.message || "Update failed");
+    } finally { setIsUpdating(false); }
   };
 
+  useEffect(() => { setCrew(updateCrewData); }, []);
   useEffect(() => {
-    setCrew(updateCrewData);
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = "unset"; };
   }, []);
-  console.log(crew)
 
-  return (
-    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex items-center justify-center">
-      <form
-        onSubmit={handleSubmit}
-        className="w-[600px] bg-slate-900 border border-slate-700 rounded-xl shadow-lg p-8"
-      >
-        <h2 className="text-2xl font-semibold mb-8 text-white">Update Crew</h2>
-
-        {/* Name */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">Name</label>
-          <input
-            type="text"
-            name="name"
-            placeholder="Enter name"
-            value={crew.name}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-          />
+  return createPortal(
+    <div className="fixed z-[2000] inset-0 bg-slate-950/90 backdrop-blur-sm">
+      <div className="hide-scrollbar w-full h-full overflow-y-auto">
+        <div className="flex min-h-full items-start justify-center pt-24 pb-16 px-4">
+          <form onSubmit={handleSubmit} className="relative w-full max-w-2xl bg-slate-900 border border-white/10 shadow-2xl rounded-[2.5rem] p-8 lg:p-12 animate-in fade-in zoom-in-95 duration-300">
+            <button type="button" className="absolute top-8 right-8 text-slate-400 hover:text-white" onClick={() => setUpdateCrewModal(null)}>
+              <RxCross1 size={24} />
+            </button>
+            <div className="mb-10 text-center">
+              <h2 className="text-3xl font-black text-white mb-2">Update Crew Details</h2>
+              <p className="text-slate-500 font-medium">Refine personnel information for your production</p>
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Name</label>
+                <input name="name" value={crew.name} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Role</label>
+                <input name="role" value={crew.role} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Bio (Max 50 Chars)</label>
+                <textarea name="description" value={crew.description} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" rows="3" />
+              </div>
+              <div className="space-y-4 mb-10">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Avatar Art</label>
+                <div className="flex items-center gap-4">
+                  <label className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-6 py-3 rounded-2xl cursor-pointer font-bold text-xs uppercase tracking-widest">
+                    Change Avatar
+                    <input type="file" hidden accept="image/*" onChange={handleImage} />
+                  </label>
+                  <span className="text-slate-400 text-sm">{crew.imageName}</span>
+                </div>
+              </div>
+            </div>
+            <button type="submit" disabled={isUpdating} className="w-full bg-gradient-to-br from-indigo-600 to-purple-700 text-white py-5 rounded-2xl font-black transition-all active:scale-95 flex items-center justify-center gap-2 mt-8">
+              {isUpdating ? <Loader2 className="animate-spin" /> : "Update Member"}
+            </button>
+          </form>
         </div>
-
-        {/* Role */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">Role</label>
-          <input
-            type="text"
-            name="role"
-            placeholder="Enter role"
-            value={crew.role}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-          />
-        </div>
-
-        {/* Description */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">
-            Description (optional, max 50 chars)
-          </label>
-          <textarea
-            name="description"
-            placeholder="Enter description"
-            value={crew.description}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-            rows="3"
-          />
-          <p className="text-sm text-slate-500 mt-1">
-            {crew.description.length}/50
-          </p>
-        </div>
-
-        {/* Image */}
-        <div className="mb-8">
-          <label className="block mb-2 font-medium text-slate-300">Image</label>
-          <div className="flex items-center gap-4">
-            <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
-              Browse...
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={handleImage}
-              />
-            </label>
-            <span className="text-slate-400">{crew.imageName}</span>
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end gap-4">
-          <button
-            onClick={() => setUpdateCrewModal((prev) => !prev)}
-            type="button"
-            className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Update
-          </button>
-        </div>
-      </form>
-    </div>
+      </div>
+    </div>,
+    document.body
   );
 };
 
-// Update existing cast
-
-export const UpdateCast = ({
-  movie_id,
-  updateCastModal,
-  setActor,
-  setUpddateCastModal,
-}) => {
-  const [crew, setCrew] = useState({
-    _id: "",
-    name: "",
-    role: "",
-    description: "",
-    image: null,
-    imageName: "No file selected.",
-  });
-
-  // Handle text inputs
+export const UpdateCast = ({ movie_id, updateCastModal, setActor, setUpddateCastModal }) => {
+  const [crew, setCrew] = useState({ _id: "", name: "", role: "", description: "", image: null, imageName: "No file selected." });
+  const [isUpdating, setIsUpdating] = useState(false);
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name === "description" && value.length > 50) return;
-
-    setCrew((prev) => ({ ...prev, [name]: value }));
+    setCrew(prev => ({ ...prev, [name]: value }));
   };
-
-  // Handle image
   const handleImage = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setCrew((prev) => ({
-        ...prev,
-        image: file,
-        imageName: file.name,
-      }));
-    }
+    if (file) setCrew(prev => ({ ...prev, image: file, imageName: file.name }));
   };
-
-  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setIsUpdating(true);
     const formData = new FormData();
     formData.append("name", crew.name);
     formData.append("role", crew.role);
     formData.append("description", crew.description);
-    formData.append("avatar", crew.image);
+    if (crew.image instanceof File) formData.append("avatar", crew.image);
     formData.append("_id", crew._id);
-    console.log("Sending 👉", crew);
-
-    const { data } = await multiInstance.put(
-      `/movies/actor/update?_id=${updateCastModal._id}`,
-      formData,
-    );
-    setActor((prev) =>
-      prev.map((item) =>
-        item._id == updateCastModal._id ? data.message : item,
-      ),
-    );
-    setUpddateCastModal(null);
+    try {
+      const { data } = await multiInstance.put(`/movies/actor/update?_id=${updateCastModal._id}`, formData);
+      setActor(prev => prev.map(item => (item._id == updateCastModal._id ? data.message : item)));
+      setUpddateCastModal(null);
+      toast.success("Cast member updated successfully");
+    } catch (error) { toast.error(error?.response?.data?.message || "Update failed");
+    } finally { setIsUpdating(false); }
   };
+  useEffect(() => { setCrew(updateCastModal); }, []);
   useEffect(() => {
-    setCrew(updateCastModal);
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = "unset"; };
   }, []);
 
-  return (
-    <div className="fixed inset-0 z-[1000] bg-slate-950/80 flex items-center justify-center">
-      <form className="w-[600px] bg-slate-900 border border-slate-700 rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-semibold mb-8 text-white">Update Cast</h2>
-
-        {/* Name */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">Name</label>
-          <input
-            type="text"
-            name="name"
-            placeholder="Enter name"
-            value={crew.name}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-          />
+  return createPortal(
+    <div className="fixed z-[2000] inset-0 bg-slate-950/90 backdrop-blur-sm">
+      <div className="hide-scrollbar w-full h-full overflow-y-auto">
+        <div className="flex min-h-full items-start justify-center pt-24 pb-16 px-4">
+          <form onSubmit={handleSubmit} className="relative w-full max-w-2xl bg-slate-900 border border-white/10 shadow-2xl rounded-[2.5rem] p-8 lg:p-12 animate-in fade-in zoom-in-95 duration-300">
+            <button type="button" className="absolute top-8 right-8 text-slate-400 hover:text-white" onClick={() => setUpddateCastModal(null)}>
+              <RxCross1 size={24} />
+            </button>
+            <div className="mb-10 text-center">
+              <h2 className="text-3xl font-black text-white mb-2">Update Cast Profile</h2>
+              <p className="text-slate-500 font-medium">Refine actor information for your series character</p>
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Name</label>
+                <input name="name" value={crew.name} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Role</label>
+                <input name="role" value={crew.role} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Bio (Max 50 Chars)</label>
+                <textarea name="description" value={crew.description} onChange={handleChange} className="w-full bg-slate-800/50 border border-slate-700/50 text-white p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" rows="3" />
+              </div>
+              <div className="space-y-4 mb-10">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black ml-1">Headshot / Avatar</label>
+                <div className="flex items-center gap-4">
+                  <label className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-6 py-3 rounded-2xl cursor-pointer font-bold text-xs uppercase tracking-widest">
+                    Update Photo
+                    <input type="file" hidden accept="image/*" onChange={handleImage} />
+                  </label>
+                  <span className="text-slate-400 text-sm">{crew.imageName}</span>
+                </div>
+              </div>
+            </div>
+            <button type="submit" disabled={isUpdating} className="w-full bg-gradient-to-br from-indigo-600 to-purple-700 text-white py-5 rounded-2xl font-black transition-all active:scale-95 flex items-center justify-center gap-2 mt-8">
+              {isUpdating ? <Loader2 className="animate-spin" /> : "Update Member"}
+            </button>
+          </form>
         </div>
-
-        {/* Role */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">Role</label>
-          <input
-            type="text"
-            name="role"
-            placeholder="Enter role"
-            value={crew.role}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-          />
-        </div>
-
-        {/* Description */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium text-slate-300">
-            Description (optional, max 50 chars)
-          </label>
-          <textarea
-            name="description"
-            placeholder="Enter description"
-            value={crew.description}
-            onChange={handleChange}
-            className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg focus:outline-none focus:border-blue-500 placeholder-slate-500"
-            rows="3"
-          />
-          <p className="text-sm text-slate-500 mt-1">
-            {crew.description.length}/50
-          </p>
-        </div>
-
-        {/* Image */}
-        <div className="mb-8">
-          <label className="block mb-2 font-medium text-slate-300">Image</label>
-          <div className="flex items-center gap-4">
-            <label className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-lg cursor-pointer transition-colors">
-              Browse...
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={handleImage}
-              />
-            </label>
-            <span className="text-slate-400">{crew.imageName}</span>
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end gap-4">
-          <button
-            onClick={() => setUpddateCastModal(null)}
-            type="button"
-            className="px-5 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700"
-          >
-            Cancel
-          </button>
-
-          <button
-            onClick={handleSubmit}
-            type="submit"
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Update
-          </button>
-        </div>
-      </form>
-    </div>
+      </div>
+    </div>,
+    document.body
   );
 };

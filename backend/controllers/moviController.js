@@ -3,11 +3,14 @@ import actorSchema from "../models/moviModals/actorSchema.js";
 import crewSchema from "../models/moviModals/crewSchema.js";
 import movies from "../models/moviModals/movieSchema.js";
 import seatsSchema from "../models/seatsSchema.js";
+import { uploadToCloudinary } from "../methods/uploadToCloudinary.js";
+import seasonSchema from "../models/moviModals/sessionSchema.js";
+import episodeSchema from "../models/moviModals/episodSchema.js";
 import { createOrder } from "./notificationController.js";
 export const getMovies = async (req, res) => {
   try {
-    const page = Number(req.params.page) || 1;
-    const limit = Number(req.params.limit) || 10;
+    const page = Number(req.params.page || req.query.page) || 1;
+    const limit = Number(req.params.limit || req.query.limit) || 10;
     const skipPage = (page - 1) * limit;
     
     const response = await movies
@@ -17,7 +20,7 @@ export const getMovies = async (req, res) => {
       .limit(limit)
       .lean();
       
-    const documents = await movies.countDocuments().lean();
+    const documents = await movies.countDocuments();
     
     return res.status(200).json({
       message: { data: response, documents },
@@ -155,51 +158,79 @@ export const bookeMovi = async (req, res) => {
 
 export const create = async (req, res) => {
   try {
+    const { 
+      premium, 
+      price, 
+      year, 
+      rating, 
+      totalSeasons, 
+      totalEpisodes, 
+      isCompleted, 
+      duration,
+      Category
+    } = req.body;
+
+    let poster = "";
+    let media = "";
+    let trailerPoster = "";
+    let trailerMedia = "";
+
     if (req.files) {
-      const poster = req.files.poster?.[0]?.filename
-        ? `${process.env.UPLOAD_PATH}${req.files.poster[0].filename}`
-        : "";
-      const media = req.files.media?.[0]?.filename
-        ? `${process.env.UPLOAD_PATH}${req.files.media[0].filename}`
-        : "";
-      const trailerPoster = req.files.trailerPoster?.[0]?.filename
-        ? `${process.env.UPLOAD_PATH}${req.files.trailerPoster[0].filename}`
-        : "";
-      const trailerMedia = req.files.trailerMedia?.[0]?.filename
-        ? `${process.env.UPLOAD_PATH}${req.files.trailerMedia[0].filename}`
-        : "";
+      const posterPath = req.files.poster?.[0]?.path;
+      const mediaPath = req.files.media?.[0]?.path;
+      const trailerPosterPath = req.files.trailerPoster?.[0]?.path;
+      const trailerMediaPath = req.files.trailerMedia?.[0]?.path;
 
-      const response = await movies.create({
-        ...req.body,
-        media,
-        poster,
-        "trailer.poster": trailerPoster,
-        "trailer.media": trailerMedia,
-      });
-
-      // create seats structure
-      // const seats = [];
-      // for (let i = 0; i < rows; i++) {
-      //   let rowLetter = String.fromCharCode(65 + i);
-      //   for (let j = 1; j <= cols; j++) {
-      //     seats.push({
-      //       movi_id: response._id,
-      //       seatNumber: `${rowLetter}${j}`,
-      //       row: rowLetter,
-      //       col: j,
-      //       isBooked: false,
-      //     });
-      //   }
-      // }
-      // await seatsSchema.insertMany(seats);
-
-      return res.status(200).json({
-        message: response,
-      });
+      // Upload available files to Cloudinary
+      const uploads = await Promise.all([
+        posterPath ? uploadToCloudinary(posterPath, "movies/posters") : Promise.resolve(""),
+        mediaPath ? uploadToCloudinary(mediaPath, "movies/media") : Promise.resolve(""),
+        trailerPosterPath ? uploadToCloudinary(trailerPosterPath, "movies/trailers/posters") : Promise.resolve(""),
+        trailerMediaPath ? uploadToCloudinary(trailerMediaPath, "movies/trailers/media") : Promise.resolve(""),
+      ]);
+      
+      [poster, media, trailerPoster, trailerMedia] = uploads;
     }
+
+    // Prepare data with proper type casting and strict separation
+    const contentData = {
+      main_title: req.body.main_title,
+      title: req.body.title,
+      Category: req.body.Category,
+      year: year ? Number(year) : undefined,
+      releaseDate: req.body.releaseDate,
+      rating: rating ? Number(rating) : undefined,
+      language: req.body.language,
+      genres: req.body.genres,
+      storyline: req.body.storyline,
+      poster: poster || req.body.poster,
+      premium: premium === "true" || premium === true,
+      price: price ? Number(price) : 0,
+    };
+
+    // Category specific fields
+    if (Category === "movie") {
+      contentData.duration = duration ? Number(duration) : undefined;
+      contentData.media = media || req.body.media;
+      contentData.trailer = {
+        poster: trailerPoster,
+        media: trailerMedia,
+      };
+    } else if (Category === "series") {
+      contentData.totalSeasons = totalSeasons ? Number(totalSeasons) : 0;
+      contentData.totalEpisodes = totalEpisodes ? Number(totalEpisodes) : 0;
+      contentData.isCompleted = isCompleted === "true" || isCompleted === true;
+    }
+
+    const response = await movies.create(contentData);
+
+    return res.status(200).json({
+      message: response,
+    });
   } catch (err) {
-    return res.status(301).json({
-      message: "Something went wrong !",
+    console.error("Create Content Error:", err);
+    return res.status(500).json({
+      message: err.message || "Something went wrong while creating content",
     });
   }
 };
@@ -266,41 +297,46 @@ export const deleteMovie = async (req, res) => {
 export const updateMovieBasics = async (req, res) => {
   try {
     const { movie_id } = req.params;
-    const {
-      name,
-      main_title,
-      title,
-      Category,
-      status,
-      duration,
-      year,
-      rating,
-      language,
-      genres,
-      storyline,
-      price,
-    } = req.body;
-    const data = await movies.findByIdAndUpdate(movie_id, {
-      $set: {
-        name,
-        main_title,
-        title,
-        Category,
-        status,
-        duration,
-        year,
-        rating,
-        language,
-        genres,
-        storyline,
-        price,
+    const whitelist = [
+      'main_title', 'title', 'Category', 'status', 'year', 'releaseDate', 
+      'rating', 'language', 'genres', 'storyline', 'premium', 'price', 
+      'duration', 'isCompleted'
+    ];
+
+    const bodyData = {};
+    whitelist.forEach(key => {
+      if (req.body[key] !== undefined) {
+        let value = req.body[key];
+        
+        // Accurate type casting for FormData strings
+        if (['year', 'rating', 'price', 'duration'].includes(key)) {
+          value = value === "" ? undefined : Number(value);
+        } else if (['premium', 'isCompleted'].includes(key)) {
+          value = String(value) === 'true';
+        }
+        
+        bodyData[key] = value;
+      }
+    });
+
+    // Handle poster file update individually
+    if (req.file) {
+      bodyData.poster = await uploadToCloudinary(req.file.path, "movies/posters");
+    }
+
+    const data = await movies.findByIdAndUpdate(
+      movie_id,
+      {
+        $set: bodyData,
       },
-    },{new:true});
-   
+      { new: true, runValidators: true },
+    );
+
     res.status(200).json({
       message: data,
     });
   } catch (error) {
+    console.error("Update Movie Basics Error:", error);
     res.status(400).json({
       message: "failed to updated",
     });
@@ -311,14 +347,16 @@ export const updateMovieTrailer = async (req, res) => {
   try {
     const { movie_id } = req.params;
     const bodyData = {};
-    const trailerPoster = req.files.trailerPoster?.[0]?.filename;
-    const trailerMedia = req.files.trailerMedia?.[0]?.filename;
-    if (trailerPoster) {
-      bodyData["trailer.poster"] = `${process.env.UPLOAD_PATH}${trailerPoster}`;
+    const trailerPosterPath = req.files.trailerPoster?.[0]?.path;
+    const trailerMediaPath = req.files.trailerMedia?.[0]?.path;
+
+    if (trailerPosterPath) {
+      bodyData["trailer.poster"] = await uploadToCloudinary(trailerPosterPath, "movies/trailers/posters");
     }
-    if (trailerMedia) {
-      bodyData["trailer.media"] = `${process.env.UPLOAD_PATH}${trailerMedia}`;
+    if (trailerMediaPath) {
+      bodyData["trailer.media"] = await uploadToCloudinary(trailerMediaPath, "movies/trailers/media");
     }
+    
     const data = await movies.findByIdAndUpdate(
       movie_id,
       {
@@ -335,6 +373,7 @@ export const updateMovieTrailer = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Update Movie Trailer Error:", error);
     res.status(400).json({
       message: "failed to updated",
     });
@@ -346,15 +385,16 @@ export const updateMovieMedia = async (req, res) => {
    
     const { movie_id } = req.params;
     const bodyData = {};
-    const poster = req.files?.poster?.[0]?.filename;
-    const media = req.files?.media?.[0]?.filename;
-    console.log(poster, media);
-    if (poster) {
-      bodyData["poster"] = `${process.env.UPLOAD_PATH}/${poster}`;
+    const posterPath = req.files?.poster?.[0]?.path;
+    const mediaPath = req.files?.media?.[0]?.path;
+
+    if (posterPath) {
+      bodyData["poster"] = await uploadToCloudinary(posterPath, "movies/posters");
     }
-    if (media) {
-      bodyData["media"] = `${process.env.UPLOAD_PATH}/${media}`;
+    if (mediaPath) {
+      bodyData["media"] = await uploadToCloudinary(mediaPath, "movies/media");
     }
+
     const data = await movies.findByIdAndUpdate(movie_id, {
       $set: bodyData,
     },{new:true});
@@ -365,6 +405,7 @@ export const updateMovieMedia = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Update Movie Media Error:", error);
     res.status(400).json({
       message: "failed to updated",
     });
@@ -374,7 +415,6 @@ export const updateMovieMedia = async (req, res) => {
 export const updateMovie = async (req, res) => {
   try {
     const { _id } = req.query;
-    const { cols, rows } = req.body;
     if (!_id) {
       return res.status(301).json({
         message: "Something went wrong",
@@ -388,8 +428,7 @@ export const updateMovie = async (req, res) => {
     }
 
     if (req.file) {
-      const VideoUrl = `http://localhost:5000/uploads/${req.file.filename}`;
-      updates["source_url"] = VideoUrl;
+      updates["source_url"] = await uploadToCloudinary(req.file.path, "movies/source");
     }
 
     const response = await movies.findByIdAndUpdate(
@@ -398,32 +437,11 @@ export const updateMovie = async (req, res) => {
       { new: true, runValidators: true },
     );
 
-    // to update seats structure tehse possible cases
-    // case 1 -> row incr
-    // case 2 -> col incres
-    // case 3 -> row inc col dec
-    // case 4 -> row dec col inc
-    // case 5 -both inc
-    // case 6 -> both dec
-
-    // if (response.cols !== cols || response.rows !== rows) {
-    //   const seats = [];
-    //   for (let i = 0; i < rows; i++) {
-    //     let rowLetter = String.fromCharCode(65 + i);
-    //     for (let j = 1; j <= cols; j++) {
-    //       seats.push({
-    //         movi_id: response._id,
-    //         seatNumber: `${rowLetter}${j}`,
-    //         isBooked: false,
-    //       });
-    //     }
-    //   }
-    //   await seatsSchema.insertMany(seats);
-    // }
     return res.status(200).json({
       message: response,
     });
   } catch (err) {
+    console.error("Update Movie Error:", err);
     return res.status(301).json({
       message: "Something went wrong",
     });
@@ -432,16 +450,16 @@ export const updateMovie = async (req, res) => {
 
 export const addNewActor = async (req, res) => {
   try {
-   
     let img = "";
     if (req.file) {
-      img = `${process.env.UPLOAD_PATH}${req.file.filename}`;
+      img = await uploadToCloudinary(req.file.path, "actors");
     }
     const actor = await actorSchema.create({ ...req.body, img });
     res.status(200).json({
       message: actor,
     });
   } catch (error) {
+    console.error("Add New Actor Error:", error);
     res.status(400).json({
       message: "failed to create actore",
     });
@@ -450,16 +468,16 @@ export const addNewActor = async (req, res) => {
 
 export const addNewCrew = async (req, res) => {
   try {
-   
     let img = "";
     if (req.file) {
-      img = `${process.env.UPLOAD_PATH}${req.file.filename}`;
+      img = await uploadToCloudinary(req.file.path, "crew");
     }
     const data = await crewSchema.create({ ...req.body, img });
     res.status(200).json({
       message: data,
     });
   } catch (error) {
+    console.error("Add New Crew Error:", error);
     res.status(400).json({
       message: "failed to create",
     });
@@ -468,30 +486,24 @@ export const addNewCrew = async (req, res) => {
 
 export const updateActor = async (req, res) => {
   try {
-    
     const { _id } = req.query;
-    let data;
-    if (req.file && req.file.filename) {
-      const img = `${process.env.UPLOAD_PATH}${req.file.filename}`;
-      data = await actorSchema.findByIdAndUpdate(
-        _id,
-        {
-          $set: { ...req.body, img },
-        },
-        { new: true },
-      );
-    } else {
-      data = await actorSchema.findByIdAndUpdate(
-        _id,
-        { $set: req.body },
-        { new: true },
-      );
+    let updates = { ...req.body };
+    
+    if (req.file) {
+      updates.img = await uploadToCloudinary(req.file.path, "actors");
     }
+
+    const data = await actorSchema.findByIdAndUpdate(
+      _id,
+      { $set: updates },
+      { new: true },
+    );
+
     res.status(200).json({
       message: data,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Update Actor Error:", error);
     res.status(400).json({
       message: "failed to updated",
     });
@@ -500,27 +512,24 @@ export const updateActor = async (req, res) => {
 
 export const updateCrew = async (req, res) => {
   try {
-    
     const { _id } = req.query;
-    let data;
-    if (req.file && req.file.filename) {
-      const img = `${process.env.UPLOAD_PATH}${req.file.filename}`;
-      data = await crewSchema.findByIdAndUpdate(
-        _id,
-        { $set: { ...req.body, img } },
-        { new: true },
-      );
-    } else {
-      data = await crewSchema.findByIdAndUpdate(
-        _id,
-        { $set: req.body },
-        { new: true },
-      );
+    let updates = { ...req.body };
+
+    if (req.file) {
+      updates.img = await uploadToCloudinary(req.file.path, "crew");
     }
+
+    const data = await crewSchema.findByIdAndUpdate(
+      _id,
+      { $set: updates },
+      { new: true },
+    );
+
     res.status(200).json({
       message: data,
     });
   } catch (error) {
+    console.error("Update Crew Error:", error);
     res.status(400).json({
       message: "failed to updated",
     });
@@ -551,6 +560,256 @@ export const deleteCrew = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       message: "failed to delete",
+    });
+  }
+};
+
+// --- Season & Episode Management ---
+
+export const addSeason = async (req, res) => {
+  try {
+    const { series, seasonNumber } = req.body;
+    if (!series || !seasonNumber) {
+      return res.status(400).json({ message: "Series ID and Season Number are required" });
+    }
+
+    let banner = "";
+    if (req.file) {
+      banner = await uploadToCloudinary(req.file.path, "seasons/banners");
+    } else if (!req.body.banner) {
+       return res.status(400).json({ message: "Season banner is required" });
+    }
+
+    const season = await seasonSchema.create({
+      ...req.body,
+      banner: banner || req.body.banner
+    });
+
+    res.status(201).json({
+      message: season,
+    });
+  } catch (error) {
+    console.error("Add Season Error:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "Season number already exists for this series" });
+    }
+    res.status(500).json({
+      message: "Failed to add season",
+    });
+  }
+};
+
+export const updateSeason = async (req, res) => {
+  try {
+    const { _id } = req.query;
+    if (!_id) {
+      return res.status(400).json({ message: "Season ID is required" });
+    }
+
+    const updates = { ...req.body };
+    if (req.file) {
+      updates.banner = await uploadToCloudinary(req.file.path, "seasons/banners");
+    }
+
+    const season = await seasonSchema.findByIdAndUpdate(
+      _id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
+    if (!season) {
+      return res.status(404).json({ message: "Season not found" });
+    }
+
+    res.status(200).json({
+      message: season,
+    });
+  } catch (error) {
+    console.error("Update Season Error:", error);
+    res.status(500).json({
+      message: "Failed to update season",
+    });
+  }
+};
+
+export const addEpisode = async (req, res) => {
+  try {
+    const { series, season, episodeNumber, title, duration } = req.body;
+    if (!series || !season || !episodeNumber || !title || !duration) {
+      return res.status(400).json({ message: "Missing required episode details" });
+    }
+
+    let videoUrl = "";
+    let thumbnail = "";
+
+    if (req.files) {
+      const videoPath = req.files.video?.[0]?.path;
+      const thumbPath = req.files.thumbnail?.[0]?.path;
+
+      if (videoPath) videoUrl = await uploadToCloudinary(videoPath, "episodes/videos");
+      if (thumbPath) thumbnail = await uploadToCloudinary(thumbPath, "episodes/thumbnails");
+    }
+
+    const episode = await episodeSchema.create({
+      ...req.body,
+      videoUrl,
+      thumbnail
+    });
+
+    res.status(201).json({
+      message: episode,
+    });
+  } catch (error) {
+    console.error("Add Episode Error:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "Episode number already exists for this season" });
+    }
+    res.status(500).json({
+      message: "Failed to add episode",
+    });
+  }
+};
+
+export const getSeriesDetails = async (req, res) => {
+  try {
+    const { seriesId } = req.params;
+    
+    // Get series metadata
+    const series = await movies.findById(seriesId);
+    if (!series) {
+      return res.status(404).json({ message: "Series not found" });
+    }
+
+    // Get all seasons for this series
+    const seasons = await seasonSchema.find({ series: seriesId }).sort({ seasonNumber: 1 });
+
+    return res.status(200).json({
+      message: {
+        series,
+        seasons
+      }
+    });
+  } catch (error) {
+    console.error("Get Series Details Error:", error);
+    return res.status(500).json({
+      message: "Failed to fetch series details",
+    });
+  }
+};
+
+export const getSeasonDetails = async (req, res) => {
+  try {
+    const { seasonId } = req.params;
+
+    // Get season metadata
+    const season = await seasonSchema.findById(seasonId);
+    if (!season) {
+      return res.status(404).json({ message: "Season not found" });
+    }
+
+    // Get all episodes for this season
+    const episodes = await episodeSchema.find({ season: seasonId }).sort({ episodeNumber: 1 });
+
+    return res.status(200).json({
+      message: {
+        season,
+        episodes
+      }
+    });
+  } catch (error) {
+    console.error("Get Season Details Error:", error);
+    return res.status(500).json({
+      message: "Failed to fetch season details",
+    });
+  }
+};
+
+export const updateEpisode = async (req, res) => {
+  try {
+    const { _id } = req.query;
+    if (!_id) {
+      return res.status(400).json({ message: "Episode ID is required" });
+    }
+
+    const updates = { ...req.body };
+
+    if (req.files) {
+      const videoPath = req.files.video?.[0]?.path;
+      const thumbPath = req.files.thumbnail?.[0]?.path;
+
+      if (videoPath) updates.videoUrl = await uploadToCloudinary(videoPath, "episodes/videos");
+      if (thumbPath) updates.thumbnail = await uploadToCloudinary(thumbPath, "episodes/thumbnails");
+    }
+
+    const episode = await episodeSchema.findByIdAndUpdate(
+      _id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
+    if (!episode) {
+      return res.status(404).json({ message: "Episode not found" });
+    }
+
+    res.status(200).json({
+      message: episode,
+    });
+  } catch (error) {
+    console.error("Update Episode Error:", error);
+    res.status(500).json({
+      message: "Failed to update episode",
+    });
+  }
+};
+
+export const deleteSeason = async (req, res) => {
+  try {
+    const { _id } = req.query;
+    if (!_id) {
+      return res.status(400).json({ message: "Season ID is required" });
+    }
+
+    // Delete all episodes associated with this season
+    await episodeSchema.deleteMany({ season: _id });
+
+    // Delete the season
+    const season = await seasonSchema.findByIdAndDelete(_id);
+
+    if (!season) {
+      return res.status(404).json({ message: "Season not found" });
+    }
+
+    res.status(200).json({
+      message: "Season and all associated episodes deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Season Error:", error);
+    res.status(500).json({
+      message: "Failed to delete season",
+    });
+  }
+};
+
+export const deleteEpisode = async (req, res) => {
+  try {
+    const { _id } = req.params;
+    if (!_id) {
+      return res.status(400).json({ message: "Episode ID is required" });
+    }
+
+    const episode = await episodeSchema.findByIdAndDelete(_id);
+
+    if (!episode) {
+      return res.status(404).json({ message: "Episode not found" });
+    }
+
+    res.status(200).json({
+      message: "Episode deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Episode Error:", error);
+    res.status(500).json({
+      message: "Failed to delete episode",
     });
   }
 };

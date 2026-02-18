@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
+
 const registerSchema = new mongoose.Schema({
   FullName: {
     type: String,

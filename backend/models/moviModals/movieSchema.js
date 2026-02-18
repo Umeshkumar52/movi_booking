@@ -1,10 +1,6 @@
 import mongoose, { Schema } from "mongoose";
-const moviSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      require: true,
-    },
+const moviSchema = new mongoose.Schema({ 
+  // common fields in movie and series
     main_title: {
       type: String,
       require: true,
@@ -23,12 +19,12 @@ const moviSchema = new mongoose.Schema(
       enum: ["active", "inactive"],
       default: "active",
     },
-    duration: {
+    year: {
       type: Number,
       require: true,
     },
-    year: {
-      type: Number,
+    releaseDate: {
+      type: Date,
       require: true,
     },
     rating: {
@@ -47,24 +43,43 @@ const moviSchema = new mongoose.Schema(
       type: String,
       require: true,
     },
-
-    price: Number,
+    premium:{
+      type:Boolean,
+      default:false
+    },
+    price:{
+      type:Number,
+      require:function () {
+        return this.premium
+      }
+    },
     poster: {
       type: String,
       require: true,
     },
+   
+    //  movie specific fields
     media: {
-      type: String,
-      require: true,
+      type: String
     },
-    trailer: {
+    duration: {
+      type: Number,
+      require: function () {
+        return this.Category === "movie";
+      },
+    },
+     trailer: {
       media: {
         type: String,
-        require: true,
+        require: function () {
+        return this.Category === "movie";
+      },
       },
       poster: {
         type: String,
-        require: true,
+        require:function() {
+        return this.Category === "movie";
+      },
       },
     },
     actores: [
@@ -80,6 +95,21 @@ const moviSchema = new mongoose.Schema(
         ref: "crew",
       },
     ],
+
+    // series specific fields these update after
+    totalSeasons: {
+      type: Number,
+      default: 0,
+    },
+    totalEpisodes: {
+      type: Number,
+      default: 0,
+    },
+
+    isCompleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );
