@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Plus, Edit, Trash2, Calendar, Hash, PlayCircle, MoreVertical, Layers } from "lucide-react";
 import { AddSeasonModal, UpdateSeasonModal } from "../seriesForms/SeasonForms";
 import instance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
-
+import {AuthContext} from '../../context/AuthProvider'
 export default function SeasonsManagement({ seriesId, seasons, refreshData, onManageEpisodes }) {
+  const{user} =useContext(AuthContext)
   const [showAddModal, setShowAddModal] = useState(false);
   const [editSeason, setEditSeason] = useState(null);
 
@@ -19,6 +20,7 @@ export default function SeasonsManagement({ seriesId, seasons, refreshData, onMa
     }
   };
 
+  
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header with Add Action */}
@@ -27,13 +29,13 @@ export default function SeasonsManagement({ seriesId, seasons, refreshData, onMa
           <h3 className="text-2xl font-black text-white">Season Chronicles</h3>
           <p className="text-slate-500 text-sm">Manage the chapters of your cinematic journey</p>
         </div>
-        <button
+       {user?.role==="admin"&& <button
           onClick={() => setShowAddModal(true)}
           className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-2xl transition-all shadow-xl shadow-indigo-600/20 active:scale-95 flex items-center gap-2"
         >
           <Plus size={20} />
           Add New Season
-        </button>
+        </button>}
       </div>
 
       {/* Seasons Grid */}
@@ -68,7 +70,7 @@ export default function SeasonsManagement({ seriesId, seasons, refreshData, onMa
                       {season.description || "No description provided for this chapter."}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                 {user?.role==="admin"&& <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => setEditSeason(season)}
                       className="p-2 bg-slate-800 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all active:scale-90"
@@ -83,7 +85,7 @@ export default function SeasonsManagement({ seriesId, seasons, refreshData, onMa
                     >
                       <Trash2 size={16} />
                     </button>
-                  </div>
+                  </div>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-2">
@@ -106,7 +108,7 @@ export default function SeasonsManagement({ seriesId, seasons, refreshData, onMa
                    onClick={() => onManageEpisodes(season._id)}
                    className="w-full mt-2 py-3 bg-white/5 hover:bg-indigo-600 border border-white/5 hover:border-indigo-500 text-slate-400 hover:text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
                 >
-                    Management Episodes
+                  { user?.role==="admin"? "Management Episodes":"Show Episodes"}
                 </button>
               </div>
             </div>

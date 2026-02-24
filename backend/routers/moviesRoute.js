@@ -27,15 +27,30 @@ import {
   deleteEpisode,
   getSeriesDetails,
   getSeasonDetails,
+  createBooking,
+  createTheaterAndShow,
+  getTheaterShowDetails,
+  bookings_revenues,
 } from "../controllers/moviController.js";
 import allowRole from "../middilwares/allowRole.js";
 
 const router = express.Router();
+// user ROutes
 router.get("/:page/:limit", getMovies);
 router.get("/search", searchMovi);
 router.put("/book", bookeMovi);
 router.get("/details", moviDetails);
+router.get("/series/details/:seriesId", getSeriesDetails);
+router.get("/season/details/:seasonId", getSeasonDetails);
+router.get("/actor/get/:movie_id", getActor);
+router.get("/crew/getdata/:movie_id", getcrew);
 
+// Admin Routes
+router.post("/booking/create",createBooking)
+router.route('/subscription/buy')
+router.post("/theater-show/create", allowRole("admin"),createTheaterAndShow)
+router.get('/theater/show/screen',getTheaterShowDetails)
+router.get('/show/details/:showId',allowRole("admin"),bookings_revenues)
 router.post(
   "/create",
   allowRole("admin"),
@@ -47,10 +62,6 @@ router.post(
   ]),
   create,
 );
-
-router.get("/actor/get/:movie_id", getActor);
-router.get("/crew/getdata/:movie_id", getcrew);
-
 router.patch(
   "/update/trailer/:movie_id",
   allowRole("admin"),
@@ -107,8 +118,6 @@ router.delete("/crew/delete/:_id", allowRole("admin"), deleteCrew);
 router.put("/update", allowRole("admin"), upload.single("file"), updateMovie);
 
 // Season & Episode Routes
-router.get("/series/details/:seriesId", allowRole("admin"), getSeriesDetails);
-router.get("/season/details/:seasonId", allowRole("admin"), getSeasonDetails);
 router.post(
   "/season/add",
   allowRole("admin"),

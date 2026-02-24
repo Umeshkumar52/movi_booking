@@ -49,7 +49,7 @@ async function logout() {
     try {
       const params = new URLSearchParams();
       if (searchQuery) params.set("SearchKey", searchQuery);
-      Object.entries(filters).forEach(([key, val]) => {
+      Object?.entries(filters)?.forEach(([key, val]) => {
         if (val !== "" && val !== undefined) params.set(key, val);
       });
       const res = await instance.get(
@@ -93,7 +93,7 @@ async function logout() {
   useEffect(() => {
     getMovies();
   }, [page]);
-
+// console.log(movies)
   return (
     <div className="flex flex-col overflow-hidden min-h-screen bg-slate-950 text-slate-200">
       {/* Premium Sticky Header  h-[calc(100vh-73px)]*/}
@@ -104,6 +104,7 @@ async function logout() {
                Movi Admin
              </h3>
           </div>
+        
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 lg:gap-8 w-full md:w-auto">

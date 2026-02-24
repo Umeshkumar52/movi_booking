@@ -47,6 +47,10 @@ const moviSchema = new mongoose.Schema({
       type:Boolean,
       default:false
     },
+    showId:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:"Show"
+    },
     price:{
       type:Number,
       require:function () {

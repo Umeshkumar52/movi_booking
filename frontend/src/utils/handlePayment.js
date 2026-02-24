@@ -1,5 +1,5 @@
-import instance from '../utils/axiosInstance'
-const handlePayment = async (amount,seats,movi_id) => {
+import instance from './axiosInstance'
+const handlePayment = async (setPayment,amount) => {
   const { data: order } = await instance.post("/payment/create-order", {
     amount: amount
   });
@@ -8,10 +8,11 @@ const handlePayment = async (amount,seats,movi_id) => {
     amount: order.amount,
     currency: order.currency,
     order_id: order.id,
-
+// Tickets Confirmed! 🍿 You're all set to watch [Movie Title] tonight at [Time]
     handler: async function (response) {
        await instance.post("/payment/verify", response);
-        await instance.put(`/movies/book?movi_id=${movi_id}&rpi=${response.razorpay_payment_id}`,{seats})
+       setPayment(response)
+     
     },
 
     modal: {

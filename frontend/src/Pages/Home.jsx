@@ -1,131 +1,273 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import AddMovi from "../Components/AddMovi";
-import instance from "../utils/axiosInstance";
-import UserMoviCard from "../Components/UserMoviCard";
-import useDebounce from "../utils/debounce";
+import ModifyMoviModal from "../Components/ModifyMoviModal";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-export default function Home() {
-  const [movies, setMovies] = useState([{_id:"12",name:"ram"}]);
+import useDebounce from "../utils/debounce";
+import AdminMovieCard from '../Components/AdminMovieCard'
+import SeriesCard from "../Components/series/SeriesCard";
+import instance from "../utils/axiosInstance";
+import { Search, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import AdminFilters, { INITIAL_FILTERS } from "../Components/AdminFilters";
+import { AuthContext } from "../context/AuthProvider";
+
+export default function Admin() {
+const {user} = useContext(AuthContext);
+  const [movies, setMovies] = useState([]);
   const [page, setPage] = useState(1);
-  const [addNewMoviToggle, setAddNewMoviToggle] = useState(false);
-  const pageLimit = 15;
+
+  const pageLimit =15;
   const [searchQuery, setSearchQuery] = useState("");
   const [totalDocuments, setTotalDocuments] = useState(0);
+  const [filters, setFilters] = useState({ ...INITIAL_FILTERS });
   const navigate = useNavigate();
-
-  // fetch movies handler
+  const isFirstRender=useRef(true)
   async function getMovies() {
     try {
       const response = await instance.get(
         `/movies/${page}/${pageLimit}`,
       );
-     
+      // Fix: Replace movies instead of appending for proper pagination
       setMovies(response.data.message.data);
-      const pages=Math.ceil(((response.data.message.documents)/pageLimit))
+      const pages = Math.ceil(response.data.message.documents / pageLimit);
       setTotalDocuments(pages);
-     
+      
+      // Scroll to top when page changes
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
-       toast.error(error?.response?.data?.message||"Something went wrong !")
+      toast.error(error?.response?.data?.message || "Something went wrong !");
     }
   }
 
-  // Logout handler
- async function logout() {
-    localStorage.removeItem("user");
-    await instance.get('/auth/logout')
+
+async function logout() {
+     await instance.get('/auth/logout')
     navigate("/login");
   }
 
-  // Search movies handler
-
   async function filterMovies() {
     try {
+      const params = new URLSearchParams();
+      if (searchQuery) params.set("SearchKey", searchQuery);
+      Object?.entries(filters)?.forEach(([key, val]) => {
+        if (val !== "" && val !== undefined) params.set(key, val);
+      });
       const res = await instance.get(
-        `/movies/search?SearchKey=${searchQuery}`,
+        `/movies/search?${params.toString()}`,
       );
       setMovies(res.data.message);
+      // Reset pagination when searching/filtering
+      setTotalDocuments(0);
     } catch (error) {
-     toast.error(error?.response?.data?.message||"Something went wrong !")
+      toast.error(error?.response?.data?.message || "Something went wrong !");
     }
   }
-  
-  // debouncing
-  const debounceSearch= useDebounce(searchQuery,500)
-  
+  const debounceSearch = useDebounce(searchQuery, 500);
+  const hasActiveFilters = Object.values(filters).some((v) => v !== "");
 
   useEffect(() => {
-   if(!debounceSearch.trim()){
-      getMovies();
-      return
-   }
-     filterMovies();
-  }, [debounceSearch]);
+    // If filters are active, always use the search/filter API
+    if (hasActiveFilters) {
+      filterMovies();
+      return;
+    }
 
-  // fetch data onn mount
+    if (!debounceSearch.trim()) {
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        return; // ⛔ skip first mount
+      }
+      
+      // If we're not on page 1, resetting to 1 will trigger the [page] effect
+      // and fetch the fresh list. If we ARE on page 1, we still need to fetch.
+      if (page !== 1) {
+        setPage(1);
+      } else {
+        getMovies();
+      }
+      return;
+    }
+    filterMovies();
+  }, [debounceSearch, filters]);
+
   useEffect(() => {
     getMovies();
   }, [page]);
 
-
-
   return (
-    <div className="flex h-screen overflow-y-auto bg-gray-100 flex-col">
-      <header className="bg-gray-300/80 px-12 py-3 flex justify-between items-center">
+    <div className="flex flex-col overflow-hidden min-h-screen bg-slate-950 text-slate-200">
+      {/* Premium Sticky Header  h-[calc(100vh-73px)]*/}
+      <header className="w-full fixed top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-white/5 px-6 lg:px-12 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-4">
-          <img className="size-12 rounded-full border-2" src="#" alt="logo" />
-          <h3 className="text-lg font-medium">Movies</h3>
+          <div className="p-2 bg-indigo-600/10 rounded-xl">
+          <h3
+  onClick={() => navigate("/")}
+  className="
+    relative
+    inline-block
+    text-2xl lg:text-4xl
+    font-extrabold
+    tracking-widest
+    uppercase
+    cursor-pointer
+    group
+  "
+>
+  <span
+    className="
+      relative z-10
+      bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-600
+      bg-clip-text text-transparent
+      drop-shadow-[0_4px_20px_rgba(251,191,36,0.7)]
+    "
+  >
+    🎬 FilmNest
+  </span>
+
+  {/* Shine Effect */}
+  <span
+    className="
+      absolute top-0 left-0 w-full h-full
+      bg-gradient-to-r from-transparent via-white/30 to-transparent
+      translate-x-[-120%]
+      group-hover:translate-x-[120%]
+      transition-transform duration-1000
+      skew-x-12
+      pointer-events-none
+    "
+  />
+</h3>
+
+
+          </div>
+        
         </div>
-        <div className="flex items-center gap-16">
-          <input
-            onChange={(event) =>setSearchQuery(event.target.value)}
-            type="search"
-            className="border-2 focus:outline-none rounded-lg w-[30rem] p-3"
-            placeholder="Search movies..."
-          />
 
-         
+        <div className="flex flex-col sm:flex-row items-center gap-4 lg:gap-8 w-full md:w-auto">
+          {/* Enhanced Search Bar */}
+          <div className="relative w-full sm:w-80 lg:w-[600px] group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+            <input
+              onChange={(event) => setSearchQuery(event.target.value)}
+              type="search"
+              className="w-full bg-slate-800/50 border border-slate-700/50 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-2xl pl-12 pr-4 py-3 placeholder-slate-500 transition-all shadow-inner"
+              placeholder="Search cinematic universe..."
+            />
+          </div>
 
-          <button
-            onClick={logout}
-            className="px-8 py-3 bg-red-600 text-white rounded-lg"
-          >
-            logout
-          </button>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+          
+            <button
+              onClick={logout}
+              className="flex items-center justify-center p-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-2xl transition-all active:scale-90"
+              title="Logout"
+            >
+              <LogOut size={22} />
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="flex flex-wrap gap-6 my-10 justify-center items-center ">
-        {movies.map((items) => (
-          <UserMoviCard key={items._id} movie={items} />
-        ))}
-      </main>
+    {/* <div className="h-[30rem] bg-red-400">
 
-      {/* New movi add modal */}
+    </div> */}
 
-      {addNewMoviToggle && (
-        <AddMovi setMovies={setMovies} toggle={setAddNewMoviToggle} />
+      {/* Sidebar + Content Layout */}
+      <div className="relative h-full flex flex-1">
+        {/* Left Sidebar Filters */}
+        <AdminFilters filters={filters} onChange={setFilters} />
+
+        {/* Main Content Grid */}
+        <main className="hide-scrollbar flex-1 h-screen pt-[8rem] overflow-auto space-y-[4rem] pt-8">
+          {/* max-w-[1400px]  min-h-[70vh] */}
+          <div className=" mx-auto flex flex-wrap gap-8  lg:px-10 px-6 justify-center min-h-[100vh]">
+            {movies.length > 0 ? (
+              movies.map((item) => (
+                item.Category === "series" ? (
+                  <SeriesCard userType={user?.role||"user"} key={item._id} series={item} />
+                ) : (
+                  <AdminMovieCard userType={user?.role||"user"} key={item._id} movie={item} />
+                )
+              ))
+            ) : (
+              <div className="h-96 flex flex-col items-center justify-center text-slate-500 gap-4 w-full">
+                <div className="size-20 rounded-full bg-slate-900 flex items-center justify-center border border-slate-800">
+                  <Search size={40} className="opacity-20" />
+                </div>
+                <p className="text-xl font-medium tracking-wide text-center px-6">
+                  No cinematic masterpieces found in this timeline
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* navigation tabe */}
+         {!searchQuery && (
+        <footer className="mx-auto border-t border-white/5 bg-slate-900/50 backdrop-blur-md">
+          <div className="max-w-[1600px] mx-auto w-full px-6 lg:px-12 py-8 flex flex-col sm:flex-row justify-between items-center gap-6">
+            <div className="text-slate-400 text-sm font-medium order-2 sm:order-1">
+              Showing page <span className="text-indigo-400">{page}</span> of <span className="text-indigo-400">{totalDocuments}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 order-1 sm:order-2">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((prev) => (prev > 1 ? prev - 1 : prev))}
+                className="flex items-center justify-center size-10 rounded-xl border border-white/5 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-indigo-600/20 hover:border-indigo-500/50 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                aria-label="Previous Page"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              
+              <div className="flex items-center gap-2">
+                {Array.from({ length: totalDocuments }, (_, index) => {
+                  const pNum = index + 1;
+                  // Show current, first, last, and neighbors
+                  if (
+                    pNum === 1 || 
+                    pNum === totalDocuments || 
+                    (pNum >= page - 1 && pNum <= page + 1)
+                  ) {
+                    return (
+                      <button
+                        onClick={() => setPage(pNum)}
+                        key={pNum}
+                        className={`size-10 rounded-xl border transition-all font-bold flex items-center justify-center text-sm ${
+                          page === pNum 
+                            ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30 scale-105" 
+                            : "bg-slate-800/50 border-white/5 text-slate-400 hover:bg-slate-800 hover:text-indigo-400"
+                        }`}
+                      >
+                        {pNum}
+                      </button>
+                    );
+                  }
+                  // Show ellipsis
+                  if (pNum === page - 2 || pNum === page + 2) {
+                    return <span key={pNum} className="text-slate-600">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+
+              <button
+                disabled={page === totalDocuments}
+                onClick={() =>
+                  setPage((prev) => (prev < totalDocuments ? prev + 1 : prev))
+                }
+                className="flex items-center justify-center size-10 rounded-xl border border-white/5 bg-slate-800/50 text-slate-400 hover:text-white hover:bg-indigo-600/20 hover:border-indigo-500/50 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                aria-label="Next Page"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+        </footer>
       )}
-
-      {/* paginatioon */}
-
-    {
-      totalDocuments>1&&  <div className="flex justify-center items-center py-14 gap-4 ">
-         <button disabled={page===1}
-          onClick={()=>setPage(prev=>prev>1?prev-1:prev)} className=" rounded-lg px-4 disabled:text-slate-300 disabled:bg-slate-100 border-2 border-slate-200 bg-slate-300 flex justify-center items-center text-2xl  p-2">
-           Prev
-          </button>
-        {Array.from({ length:totalDocuments }, (_, index) => (
-          <button onClick={()=>setPage(index+1)} key={index} className={`${page==index+1&&"bg-slate-400"} size-8 rounded-lg border-2 border-slate-200 bg-slate-300 flex justify-center items-center text-2xl  p-2`}>
-            {index+1}
-          </button>
-        ))}
-         <button disabled={page==totalDocuments} onClick={()=>setPage(prev=>prev<totalDocuments?prev+1:prev)}
-          className=" rounded-lg border-2 disabled:bg-slate-100 disabled:text-slate-300 px-4 border-slate-200 bg-slate-300 flex justify-center items-center text-2xl  p-2">
-            Next
-          </button>
+        </main>
       </div>
-    }
+
+   
     </div>
   );
 }

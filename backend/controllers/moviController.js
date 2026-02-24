@@ -8,22 +8,29 @@ import seasonSchema from "../models/moviModals/sessionSchema.js";
 import episodeSchema from "../models/moviModals/episodSchema.js";
 import { createOrder } from "./notificationController.js";
 import sessionSchema from "../models/moviModals/sessionSchema.js";
-import movieSchema from "../models/moviModals/movieSchema.js";
+import Show from "../models/moviModals/showSchema.js";
+import Booking from "../models/moviModals/bookingSchema.js";
+import Theater from "../models/moviModals/theatorSchema.js";
+import mongoose from "mongoose";
+import bookingSchema from "../models/moviModals/bookingSchema.js";
+import user from "../models/auth.js";
+import jwt from "jsonwebtoken";
+// User Controller
 export const getMovies = async (req, res) => {
   try {
     const page = Number(req.params.page || req.query.page) || 1;
     const limit = Number(req.params.limit || req.query.limit) || 10;
     const skipPage = (page - 1) * limit;
-    
+
     const response = await movies
       .find()
       .sort({ createdAt: -1, _id: -1 }) // Deterministic sorting
       .skip(skipPage)
       .limit(limit)
       .lean();
-      
+
     const documents = await movies.countDocuments();
-    
+
     return res.status(200).json({
       message: { data: response, documents },
     });
@@ -67,34 +74,28 @@ export const getcrew = async (req, res) => {
 
 export const moviDetails = async (req, res) => {
   try {
+    const { role } = req.user;
     const { _id } = req.query;
-    // let bookedSeats = 0;
-    // let remainSeats = 0;
+    const currentMovie = await movies.findById(_id);
+    const relatedMovies = await movies
+      .find({
+        _id: { $ne: _id },
+        status: "active",
+        Category: currentMovie.Category,
+        $or: [
+          { genres: { $regex: currentMovie.genres, $options: "i" } },
+          { actores: { $in: currentMovie.actores } },
+        ],
+      })
+      .sort({ rating: -1 })
+      .limit(15);
 
-    const response = await movies.findById(_id);
-    // .populate("actore")
-    // .populate("crew")
-
-    // .lean();
-    // const seats = await seatsSchema
-    //   .find({ movi_id: _id })
-    //   .sort({ row: 1, col: 1 })
-    //   .populate("bookedBy", "FullName _id")
-    //   .lean();
-    // seats.forEach((item) => {
-    //   if (item.isBooked) {
-    //     bookedSeats += 1;
-    //   }
-    // });
-    // remainSeats = seats.length - bookedSeats;
     return res.status(200).json({
-      message: response,
-      // { ...response, bookedSeats, remainSeats, seatScreen: seats },
+      message: { currentMovie, relatedMovies },
     });
   } catch (err) {
-    console.log(err);
-    return res.status(301).json({
-      message: "Something went wrong !",
+    return res.status(401).json({
+      message: "Something went wrong to load !",
     });
   }
 };
@@ -158,18 +159,20 @@ export const bookeMovi = async (req, res) => {
   }
 };
 
+// Admin Controller
+
 export const create = async (req, res) => {
   try {
-    const { 
-      premium, 
-      price, 
-      year, 
-      rating, 
-      totalSeasons, 
-      totalEpisodes, 
-      isCompleted, 
+    const {
+      premium,
+      price,
+      year,
+      rating,
+      totalSeasons,
+      totalEpisodes,
+      isCompleted,
       duration,
-      Category
+      Category,
     } = req.body;
 
     let poster = "";
@@ -185,12 +188,20 @@ export const create = async (req, res) => {
 
       // Upload available files to Cloudinary
       const uploads = await Promise.all([
-        posterPath ? uploadToCloudinary(posterPath, "movies/posters") : Promise.resolve(""),
-        mediaPath ? uploadToCloudinary(mediaPath, "movies/media") : Promise.resolve(""),
-        trailerPosterPath ? uploadToCloudinary(trailerPosterPath, "movies/trailers/posters") : Promise.resolve(""),
-        trailerMediaPath ? uploadToCloudinary(trailerMediaPath, "movies/trailers/media") : Promise.resolve(""),
+        posterPath
+          ? uploadToCloudinary(posterPath, "movies/posters")
+          : Promise.resolve(""),
+        mediaPath
+          ? uploadToCloudinary(mediaPath, "movies/media")
+          : Promise.resolve(""),
+        trailerPosterPath
+          ? uploadToCloudinary(trailerPosterPath, "movies/trailers/posters")
+          : Promise.resolve(""),
+        trailerMediaPath
+          ? uploadToCloudinary(trailerMediaPath, "movies/trailers/media")
+          : Promise.resolve(""),
       ]);
-      
+
       [poster, media, trailerPoster, trailerMedia] = uploads;
     }
 
@@ -239,16 +250,22 @@ export const create = async (req, res) => {
 
 export const searchMovi = async (req, res) => {
   try {
-    const { SearchKey, Category, status, language, genres, year, premium } = req.query;
-
+    const { SearchKey, Category, status, language, genres, year, premium } =
+      req.query;
+    console.log(premium, typeof premium);
     // Build filter conditions from query params
     const filterConditions = [];
     if (Category) filterConditions.push({ Category });
     if (status) filterConditions.push({ status });
-    if (language) filterConditions.push({ language: { $regex: language, $options: "i" } });
-    if (genres) filterConditions.push({ genres: { $regex: genres, $options: "i" } });
+    if (language)
+      filterConditions.push({ language: { $regex: language, $options: "i" } });
+    if (genres)
+      filterConditions.push({ genres: { $regex: genres, $options: "i" } });
     if (year && !isNaN(year)) filterConditions.push({ year: Number(year) });
-    if (premium !== undefined && premium !== "") filterConditions.push({ premium: premium  });
+    if (premium !== undefined && premium !== "") {
+      const premiumBool = JSON.parse(premium);
+      filterConditions.push({ premium: premiumBool });
+    }
 
     // Build text-search conditions
     let searchConditions = null;
@@ -317,30 +334,44 @@ export const updateMovieBasics = async (req, res) => {
   try {
     const { movie_id } = req.params;
     const whitelist = [
-      'main_title', 'title', 'Category', 'status', 'year', 'releaseDate', 
-      'rating', 'language', 'genres', 'storyline', 'premium', 'price', 
-      'duration', 'isCompleted'
+      "main_title",
+      "title",
+      "Category",
+      "status",
+      "year",
+      "releaseDate",
+      "rating",
+      "language",
+      "genres",
+      "storyline",
+      "premium",
+      "price",
+      "duration",
+      "isCompleted",
     ];
 
     const bodyData = {};
-    whitelist.forEach(key => {
+    whitelist.forEach((key) => {
       if (req.body[key] !== undefined) {
         let value = req.body[key];
-        
+
         // Accurate type casting for FormData strings
-        if (['year', 'rating', 'price', 'duration'].includes(key)) {
+        if (["year", "rating", "price", "duration"].includes(key)) {
           value = value === "" ? undefined : Number(value);
-        } else if (['premium', 'isCompleted'].includes(key)) {
-          value = String(value) === 'true';
+        } else if (["premium", "isCompleted"].includes(key)) {
+          value = String(value) === "true";
         }
-        
+
         bodyData[key] = value;
       }
     });
 
     // Handle poster file update individually
     if (req.file) {
-      bodyData.poster = await uploadToCloudinary(req.file.path, "movies/posters");
+      bodyData.poster = await uploadToCloudinary(
+        req.file.path,
+        "movies/posters",
+      );
     }
 
     const data = await movies.findByIdAndUpdate(
@@ -370,12 +401,18 @@ export const updateMovieTrailer = async (req, res) => {
     const trailerMediaPath = req.files.trailerMedia?.[0]?.path;
 
     if (trailerPosterPath) {
-      bodyData["trailer.poster"] = await uploadToCloudinary(trailerPosterPath, "movies/trailers/posters");
+      bodyData["trailer.poster"] = await uploadToCloudinary(
+        trailerPosterPath,
+        "movies/trailers/posters",
+      );
     }
     if (trailerMediaPath) {
-      bodyData["trailer.media"] = await uploadToCloudinary(trailerMediaPath, "movies/trailers/media");
+      bodyData["trailer.media"] = await uploadToCloudinary(
+        trailerMediaPath,
+        "movies/trailers/media",
+      );
     }
-    
+
     const data = await movies.findByIdAndUpdate(
       movie_id,
       {
@@ -401,26 +438,32 @@ export const updateMovieTrailer = async (req, res) => {
 
 export const updateMovieMedia = async (req, res) => {
   try {
-   
     const { movie_id } = req.params;
     const bodyData = {};
     const posterPath = req.files?.poster?.[0]?.path;
     const mediaPath = req.files?.media?.[0]?.path;
 
     if (posterPath) {
-      bodyData["poster"] = await uploadToCloudinary(posterPath, "movies/posters");
+      bodyData["poster"] = await uploadToCloudinary(
+        posterPath,
+        "movies/posters",
+      );
     }
     if (mediaPath) {
       bodyData["media"] = await uploadToCloudinary(mediaPath, "movies/media");
     }
 
-    const data = await movies.findByIdAndUpdate(movie_id, {
-      $set: bodyData,
-    },{new:true});
+    const data = await movies.findByIdAndUpdate(
+      movie_id,
+      {
+        $set: bodyData,
+      },
+      { new: true },
+    );
     res.status(200).json({
-      message:{
-        media:bodyData?.media??data.media ,
-        poster:bodyData?.poster??data.poster
+      message: {
+        media: bodyData?.media ?? data.media,
+        poster: bodyData?.poster ?? data.poster,
       },
     });
   } catch (error) {
@@ -447,7 +490,10 @@ export const updateMovie = async (req, res) => {
     }
 
     if (req.file) {
-      updates["source_url"] = await uploadToCloudinary(req.file.path, "movies/source");
+      updates["source_url"] = await uploadToCloudinary(
+        req.file.path,
+        "movies/source",
+      );
     }
 
     const response = await movies.findByIdAndUpdate(
@@ -507,7 +553,7 @@ export const updateActor = async (req, res) => {
   try {
     const { _id } = req.query;
     let updates = { ...req.body };
-    
+
     if (req.file) {
       updates.img = await uploadToCloudinary(req.file.path, "actors");
     }
@@ -589,28 +635,32 @@ export const addSeason = async (req, res) => {
   try {
     const { series, seasonNumber } = req.body;
     if (!series || !seasonNumber) {
-      return res.status(400).json({ message: "Series ID and Season Number are required" });
+      return res
+        .status(400)
+        .json({ message: "Series ID and Season Number are required" });
     }
 
     let banner = "";
     if (req.file) {
       banner = await uploadToCloudinary(req.file.path, "seasons/banners");
     } else if (!req.body.banner) {
-       return res.status(400).json({ message: "Season banner is required" });
+      return res.status(400).json({ message: "Season banner is required" });
     }
 
     const season = await seasonSchema.create({
       ...req.body,
-      banner: banner || req.body.banner
+      banner: banner || req.body.banner,
     });
-    await movies.updateOne({_id:series},{$inc:{totalSeasons:1}})
+    await movies.updateOne({ _id: series }, { $inc: { totalSeasons: 1 } });
     res.status(201).json({
       message: season,
     });
   } catch (error) {
     console.error("Add Season Error:", error);
     if (error.code === 11000) {
-      return res.status(400).json({ message: "Season number already exists for this series" });
+      return res
+        .status(400)
+        .json({ message: "Season number already exists for this series" });
     }
     res.status(500).json({
       message: "Failed to add season",
@@ -627,13 +677,16 @@ export const updateSeason = async (req, res) => {
 
     const updates = { ...req.body };
     if (req.file) {
-      updates.banner = await uploadToCloudinary(req.file.path, "seasons/banners");
+      updates.banner = await uploadToCloudinary(
+        req.file.path,
+        "seasons/banners",
+      );
     }
 
     const season = await seasonSchema.findByIdAndUpdate(
       _id,
       { $set: updates },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
     // await sessionSchema.findOne({series},{$inc:{totalEpisodes:1}})
     if (!season) {
@@ -655,7 +708,9 @@ export const addEpisode = async (req, res) => {
   try {
     const { series, season, episodeNumber, title, duration } = req.body;
     if (!series || !season || !episodeNumber || !title || !duration) {
-      return res.status(400).json({ message:"Missing required episode details" });
+      return res
+        .status(400)
+        .json({ message: "Missing required episode details" });
     }
 
     let videoUrl = "";
@@ -665,24 +720,28 @@ export const addEpisode = async (req, res) => {
       const videoPath = req.files.video?.[0]?.path;
       const thumbPath = req.files.thumbnail?.[0]?.path;
 
-      if (videoPath) videoUrl = await uploadToCloudinary(videoPath, "episodes/videos");
-      if (thumbPath) thumbnail = await uploadToCloudinary(thumbPath, "episodes/thumbnails");
+      if (videoPath)
+        videoUrl = await uploadToCloudinary(videoPath, "episodes/videos");
+      if (thumbPath)
+        thumbnail = await uploadToCloudinary(thumbPath, "episodes/thumbnails");
     }
 
     const episode = await episodeSchema.create({
       ...req.body,
       videoUrl,
-      thumbnail
+      thumbnail,
     });
-    await sessionSchema.updateOne({series},{$inc:{totalEpisodes:1}})
-    await movies.updateOne({_id:series},{$inc:{totalEpisodes:1}})
+    await sessionSchema.updateOne({ series }, { $inc: { totalEpisodes: 1 } });
+    await movies.updateOne({ _id: series }, { $inc: { totalEpisodes: 1 } });
     res.status(201).json({
       message: episode,
     });
   } catch (error) {
     console.error("Add Episode Error:", error);
     if (error.code === 11000) {
-      return res.status(400).json({ message: "Episode number already exists for this season" });
+      return res
+        .status(400)
+        .json({ message: "Episode number already exists for this season" });
     }
     res.status(500).json({
       message: "Failed to add episode",
@@ -693,7 +752,7 @@ export const addEpisode = async (req, res) => {
 export const getSeriesDetails = async (req, res) => {
   try {
     const { seriesId } = req.params;
-    
+
     // Get series metadata
     const series = await movies.findById(seriesId);
     if (!series) {
@@ -701,13 +760,15 @@ export const getSeriesDetails = async (req, res) => {
     }
 
     // Get all seasons for this series
-    const seasons = await seasonSchema.find({ series: seriesId }).sort({ seasonNumber: 1 });
+    const seasons = await seasonSchema
+      .find({ series: seriesId })
+      .sort({ seasonNumber: 1 });
 
     return res.status(200).json({
       message: {
         series,
-        seasons
-      }
+        seasons,
+      },
     });
   } catch (error) {
     console.error("Get Series Details Error:", error);
@@ -728,13 +789,15 @@ export const getSeasonDetails = async (req, res) => {
     }
 
     // Get all episodes for this season
-    const episodes = await episodeSchema.find({ season: seasonId }).sort({ episodeNumber: 1 });
+    const episodes = await episodeSchema
+      .find({ season: seasonId })
+      .sort({ episodeNumber: 1 });
 
     return res.status(200).json({
       message: {
         season,
-        episodes
-      }
+        episodes,
+      },
     });
   } catch (error) {
     console.error("Get Season Details Error:", error);
@@ -757,14 +820,22 @@ export const updateEpisode = async (req, res) => {
       const videoPath = req.files.video?.[0]?.path;
       const thumbPath = req.files.thumbnail?.[0]?.path;
 
-      if (videoPath) updates.videoUrl = await uploadToCloudinary(videoPath, "episodes/videos");
-      if (thumbPath) updates.thumbnail = await uploadToCloudinary(thumbPath, "episodes/thumbnails");
+      if (videoPath)
+        updates.videoUrl = await uploadToCloudinary(
+          videoPath,
+          "episodes/videos",
+        );
+      if (thumbPath)
+        updates.thumbnail = await uploadToCloudinary(
+          thumbPath,
+          "episodes/thumbnails",
+        );
     }
 
     const episode = await episodeSchema.findByIdAndUpdate(
       _id,
       { $set: updates },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!episode) {
@@ -794,7 +865,10 @@ export const deleteSeason = async (req, res) => {
 
     // Delete the season
     const season = await seasonSchema.findByIdAndDelete(_id);
-    await movies.updateOne({_id:season.series},{$inc:{totalEpisodes:-season.totalEpisodes,totalSeasons:-1}})
+    await movies.updateOne(
+      { _id: season.series },
+      { $inc: { totalEpisodes: -season.totalEpisodes, totalSeasons: -1 } },
+    );
     if (!season) {
       return res.status(404).json({ message: "Season not found" });
     }
@@ -813,14 +887,20 @@ export const deleteSeason = async (req, res) => {
 export const deleteEpisode = async (req, res) => {
   try {
     const { _id } = req.params;
-    
+
     if (!_id) {
       return res.status(400).json({ message: "Episode ID is required" });
     }
 
     const episode = await episodeSchema.findByIdAndDelete(_id);
-    await sessionSchema.updateOne({_id:episode.series},{$inc:{totalEpisodes:-1}})
-    await movies.updateOne({_id:episode.series},{$inc:{totalEpisodes:-1}})
+    await sessionSchema.updateOne(
+      { _id: episode.series },
+      { $inc: { totalEpisodes: -1 } },
+    );
+    await movies.updateOne(
+      { _id: episode.series },
+      { $inc: { totalEpisodes: -1 } },
+    );
     if (!episode) {
       return res.status(404).json({ message: "Episode not found" });
     }
@@ -832,6 +912,350 @@ export const deleteEpisode = async (req, res) => {
     console.error("Delete Episode Error:", error);
     res.status(500).json({
       message: "Failed to delete episode",
+    });
+  }
+};
+
+// create booking
+
+// controllers/bookingController.js
+export const createBooking = async (req, res) => {
+  // const session = await mongoose.startSession();
+  // session.startTransaction();
+
+  try {
+    const { showId, seats, razorpay_payment_id } = req.body;
+    const userId = req.user._id; // from auth middleware
+
+    // 1️⃣ Find show
+    const show = await Show.findById(showId);
+    // .session(session);
+
+    if (!show) {
+      throw new Error("Show not found");
+    }
+
+    // 2️⃣ Check if seats already booked
+    const alreadyBooked = seats.some((seat) => show.bookedSeats.includes(seat));
+
+    if (alreadyBooked) {
+      throw new Error("Some seats already booked");
+    }
+
+    // 3️⃣ Calculate total amount
+    let totalAmount = 0;
+
+    seats.forEach((seat) => {
+      const row = seat.charAt(0); // A1 -> A
+
+      // Example logic (you can improve)
+      if (row === "A") {
+        totalAmount += show.price.VIP;
+      } else {
+        totalAmount += show.price.REGULAR;
+      }
+    });
+
+    // 4️⃣ Create booking
+    const booking = await Booking.create({
+      userId,
+      showId,
+      seats,
+      totalAmount,
+      razorpay_payment_id,
+      paymentStatus: "SUCCESS",
+      bookingStatus: "CONFIRMED",
+    });
+
+    // 5️⃣ Update booked seats in show
+    show.bookedSeats.push(...seats);
+    await show.save();
+
+    // 6️⃣ Commit transaction
+    // await session.commitTransaction();
+    // session.endSession();
+
+    res.status(201).json({
+      success: true,
+      message: "Booking successful",
+      booking: booking[0],
+    });
+  } catch (error) {
+    // await session.abortTransaction();
+    // session.endSession();
+    console.log(error);
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const buySubscription = async (req, res) => {
+  try {
+    const { payment } = req.body;
+    if (!payment) {
+      return res.status(400).json({
+        mesage: "Payment details not found !",
+      });
+    }
+    const { _id } = req.user;
+    const subscriptionToken = jwt.sign(payment, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+    res.cookie("subscriptionToken", subscriptionToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+    await user.updateOne(
+      { _id },
+      { $set: { subscription: subscriptionToken } },
+    );
+    res.status(200).json({
+      mesage: "Subscription purchase successfully",
+    });
+  } catch (error) {
+    res.status(400).json({
+      mesage: "Failed to purchase ",
+    });
+  }
+};
+
+// create theaterShow
+
+export const createTheaterAndShow = async (req, res) => {
+  // const session = await mongoose.startSession();
+  // session.startTransaction();
+
+  try {
+    const { movieId } = req.query;
+    const {
+      name,
+      screenNumber,
+      totalRows,
+      seatsPerRow,
+      date,
+      time,
+      price,
+      VIP_seats,
+    } = req.body;
+
+    // 1️⃣ Generate Seat Layout
+    const layout = [];
+
+    for (let i = 0; i < totalRows; i++) {
+      const rowLetter = String.fromCharCode(65 + i);
+
+      for (let j = 1; j <= seatsPerRow; j++) {
+        layout.push({
+          row: rowLetter,
+          number: j,
+          type: i < VIP_seats ? "VIP" : "REGULAR",
+        });
+      }
+    }
+
+    // 2️⃣ Create Theater
+    const theater = await Theater.create({
+      name,
+      screenNumber,
+      totalRows,
+      seatsPerRow,
+      layout,
+    });
+
+    const theaterId = theater._id;
+
+    // 3️⃣ Prevent duplicate show same time
+    const existingShow = await Show.findOne({
+      theaterId,
+      date,
+      time,
+    });
+    // .session(session);
+
+    if (existingShow) {
+      throw new Error("Show already exists at this time");
+    }
+
+    // 4️⃣ Create Show
+    const show = await Show.create({
+      movieId,
+      theaterId,
+      date,
+      time,
+      price,
+    });
+
+    await movies.updateOne({ _id: movieId }, { showId: show._id });
+    // 5️⃣ Commit Transaction
+    // await session.commitTransaction();
+    // session.endSession();
+
+    res.status(201).json({
+      success: true,
+      message: "Theater and Show created successfully",
+      theater: theater[0],
+      show: show[0],
+    });
+  } catch (error) {
+    // await session.abortTransaction();
+    // session.endSession();
+
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// gets theater Details
+
+export const getTheaterShowDetails = async (req, res) => {
+  try {
+    const { movieId } = req.query;
+
+    const show = await Show.findOne({ movieId }).populate("theaterId");
+
+    if (!show) {
+      return res.status(404).json({
+        success: false,
+        message: "Show will be coming soon",
+      });
+    }
+
+    const theater = show.theaterId;
+
+    res.status(200).json({
+      success: true,
+      message: {
+        showId: show._id,
+        movieId: show.movieId,
+        date: show.date,
+        time: show.time,
+        price: show.price,
+        bookedSeats: show.bookedSeats || [],
+        theater: {
+          name: theater.name,
+          screenNumber: theater.screenNumber,
+          totalRows: theater.totalRows,
+          seatsPerRow: theater.seatsPerRow,
+          layout: theater.layout,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Show booking and revenues
+export const bookings_revenues = async (req, res) => {
+  try {
+    const { showId } = req.params;
+    const data = await bookingSchema.aggregate([
+      // 1. Match
+      {
+        $match: { showId: new mongoose.Types.ObjectId(showId) },
+      },
+
+      // 2. Group
+      {
+        $group: {
+          _id: "$showId",
+          totalRevenue: { $sum: "$totalAmount" },
+          totalBookedTickets: { $sum: 1 },
+        },
+      },
+
+      // 3. Lookup Show
+      {
+        $lookup: {
+          from: "shows", // check your collection name
+          localField: "_id", // FIXED
+          foreignField: "_id",
+          as: "showDetails",
+          pipeline: [
+            {
+              $lookup: {
+                from: "theaters", // check name
+                localField: "theaterId",
+                foreignField: "_id",
+                as: "theater",
+              },
+            },
+            // { $unwind: "$theater" }
+          ],
+        },
+      },
+
+      { $unwind: "$showDetails" },
+      //  { $unwind: "$showDetails.theater" },
+      // 4. Project
+      {
+        $project: {
+          _id: 0,
+          showId: "$_id",
+          totalRevenue: 1,
+          totalBookedTickets: 1,
+          totalSeats: {
+            $size: {
+              $arrayElemAt: ["$showDetails.theater.layout", 0],
+            },
+          },
+          //       totalSeats: {
+          //   $size: {
+          //     $arrayElemAt: [
+          //       { $ifNull: ["$showDetails.theater.layout", []] },
+          //       0
+          //     ]
+          //   }
+          // },
+          // remainingSeats: {
+          //   $subtract: [
+          //     {
+          //       $size: {
+          //         $arrayElemAt: [
+          //           { $ifNull: ["$showDetails.theater.layout", []] },
+          //           0
+          //         ]
+          //       }
+          //     },
+          //     "$totalBookedSeats"
+          //   ]
+          // },
+          remainingSeats: {
+            $subtract: [
+              {
+                $size: {
+                  $arrayElemAt: ["$showDetails.theater.layout", 0],
+                },
+              },
+              "$totalBookedTickets",
+            ],
+          },
+          theater: "$showDetails.theater",
+          bookedSeats: "$showDetails.bookedSeats",
+
+          // layout: "$showDetails.theater.layout",
+          price: "$showDetails.price",
+          date: "$showDetails.date",
+          time: "$showDetails.time",
+        },
+      },
+    ]);
+    res.status(200).json({
+      message: data,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({
+      message: "Something went wrong",
     });
   }
 };

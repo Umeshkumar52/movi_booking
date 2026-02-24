@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import {  toast } from 'react-toastify';
 import {AuthContext} from '../context/AuthProvider'
 import instance from "../utils/axiosInstance";
-import handlePayment from "../utils/handlePayment,js";
+import handlePayment from "../utils/handlePayment.js";
 function UserSeatStructure({ seatsData }) {
   const [bookedSeat, setBookedSeat] = useState([]);
   const [seats, setSeats] = useState([]);

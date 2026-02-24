@@ -1,12 +1,15 @@
 import { Star, Eye, Clock, Calendar } from "lucide-react";
+import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthProvider";
 
 export default function AdminMoviCard({ movie }) {
+  const{user}=useContext(AuthContext)
   const navigate = useNavigate();
-
+  
   return (
     <div
-      onClick={() => navigate(`/movie/details/${movie._id}`)}
+      onClick={() =>user?.role==="admin"?navigate(`/admin/movie/details/${movie._id}`):navigate(`/movie/details/${movie._id}`)}
       className="group h-fit w-[22rem] rounded-[2.5rem] overflow-hidden bg-slate-900/40 border border-white/5 hover:border-indigo-500/50 hover:bg-slate-900 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-2"
     >
       {/* Poster Section */}

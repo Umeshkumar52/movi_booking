@@ -23,6 +23,10 @@ function Login() {
       [name]: value,
     });
   }
+ 
+  const formatText = (str) => {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
 
   async function loginHandler(event) {
     event.preventDefault();
@@ -35,18 +39,15 @@ function Login() {
     setIsSubmitting(true);
     try {
       const { data } = await instance.post("/auth/login", loginData);
-      
+
       if (permission) {
         generateToken();
       }
       
-      setUser({
-        _id: data.message?._id,
-        role: data.message?.role,
-      });
-      
+      setUser(data.message);
+    
       setLoading(false);
-      toast.success("Welcome back!");
+      toast.success(`${formatText(data.message?.FullName?.toUpperCase()??"User")} Welcome back !`);
 
       navigate("/");
 

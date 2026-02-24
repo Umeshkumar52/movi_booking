@@ -25,6 +25,10 @@ function Register() {
     })
   }
 
+    const formatText = (str) => {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
   // register handler function
   async function registerHandler(event) {
     event.preventDefault()
@@ -47,7 +51,7 @@ function Register() {
       })
 
       localStorage.setItem("user", JSON.stringify({ _id: data.message._id, role: data.message.role }))
-      toast.success("Account created successfully!");
+      toast.success(`${formatText(data.message?.FullName??"User")} Account created successfully!`);
       navigate("/")
       
       setUserData({

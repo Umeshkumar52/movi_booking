@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Plus, Edit, Trash2, Clock, Hash, Play, MoreVertical, ArrowLeft, Video, Image as ImageIcon, Maximize, ExternalLink } from "lucide-react";
 import { AddEpisodeModal, UpdateEpisodeModal } from "../seriesForms/EpisodeForms";
 import instance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
 import CinematicVideoPreview from "../CinematicVideoPreview";
+import { AuthContext } from "../../context/AuthProvider";
 
 export default function EpisodesManagement({ seriesId, seasonId, onBack }) {
+  const{user} =useContext(AuthContext)
   const [season, setSeason] = useState(null);
   const [episodes, setEpisodes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -70,13 +72,13 @@ export default function EpisodesManagement({ seriesId, seasonId, onBack }) {
               <h3 className="text-3xl font-black text-white">{season?.title || "Season Chronicles"}</h3>
            </div>
         </div>
-        <button
+       {user?.role==="admin"&& <button
           onClick={() => setShowAddModal(true)}
           className="px-8 py-4 bg-white text-slate-950 hover:bg-indigo-50 font-black rounded-2xl transition-all shadow-2xl shadow-white/5 active:scale-95 flex items-center gap-2"
         >
           <Plus size={20} />
           Publish New Episode
-        </button>
+        </button>}
       </div>
 
       {/* Episodes List */}
@@ -85,6 +87,7 @@ export default function EpisodesManagement({ seriesId, seasonId, onBack }) {
           episodes.map((episode) => (
             <EpisodeCard 
               key={episode._id} 
+              user={user}
               episode={episode} 
               onEdit={() => setEditEpisode(episode)}
               onDelete={() => deleteEpisodeHandler(episode._id)}
@@ -124,7 +127,7 @@ export default function EpisodesManagement({ seriesId, seasonId, onBack }) {
   );
 }
 
-function EpisodeCard({ episode, onEdit, onDelete }) {
+function EpisodeCard({user, episode, onEdit, onDelete }) {
   return (
     <div className="group relative bg-slate-800/20 border border-white/5 rounded-3xl p-4 flex flex-col md:flex-row items-center gap-6 hover:bg-slate-800/40 hover:border-indigo-500/30 transition-all duration-300">
       {/* Cinematic Preview Wrapper */}
@@ -152,7 +155,7 @@ function EpisodeCard({ episode, onEdit, onDelete }) {
       </div>
 
       {/* Actions */}
-      <div className="flex md:flex-col gap-2 items-center justify-center pr-4">
+    {user?.role==="admin"&&  <div className="flex md:flex-col gap-2 items-center justify-center pr-4">
         <button
           onClick={onEdit}
           className="p-3 bg-slate-800 hover:bg-white/10 rounded-2xl text-slate-400 hover:text-white transition-all active:scale-90 border border-white/5"
@@ -167,7 +170,7 @@ function EpisodeCard({ episode, onEdit, onDelete }) {
         >
           <Trash2 size={18} />
         </button>
-      </div>
+      </div>}
     </div>
   );
 }

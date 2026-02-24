@@ -19,9 +19,18 @@ const registerSchema = new mongoose.Schema({
     enum: ["admin", "user"],
     default: "user",
   },
+  subscription: {
+    Id: String,
+    Expiry: Date,
+    Status: {
+      type: String,
+      enum: ["active", "expire"],
+      default: "expire",
+    },
+  },
   fcmToken: {
-    type:String,
-    default:null
+    type: String,
+    default: null,
   },
   bookedMovi: [
     {

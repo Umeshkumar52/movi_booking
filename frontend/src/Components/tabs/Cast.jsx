@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { AddCast, UpdateCast } from "../MoviForms";
 import instance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
+import { AuthContext } from "../../context/AuthProvider";
 export default function Cast({movie_id}) {
+   const{user} =useContext(AuthContext)
   const [addCastModal, setAddCastModal] = useState(false);
     const [updateCastModal, setUpddateCastModal] = useState(null);
     const[actor,setActor]=useState([])
@@ -53,13 +55,13 @@ export default function Cast({movie_id}) {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">Cast ({actor.length})</h2>
-          <button
+         {user?.role==="admin"&& <button
             onClick={() => setAddCastModal((prev) => !prev)}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition-all shadow-blue-900/20"
           >
             <Plus size={18} />
             Add Cast
-          </button>
+          </button>}
         </div>
 
         {/* Grid */}
@@ -90,7 +92,7 @@ export default function Cast({movie_id}) {
               </div>
 
               {/* Actions (Visible on Hover) */}
-              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 p-1 rounded-lg shadow-sm border border-slate-700">
+            {user?.role==="admin"&&  <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800/90 p-1 rounded-lg shadow-sm border border-slate-700">
                 <button
                   onClick={() => setUpddateCastModal(actor)}
                   className="text-blue-400 hover:text-blue-300 p-1 rounded hover:bg-blue-500/10"
@@ -105,7 +107,7 @@ export default function Cast({movie_id}) {
                 >
                   <Trash2 size={16} />
                 </button>
-              </div>
+              </div>}
             </div>
           ))}
           {actor.length === 0 && (

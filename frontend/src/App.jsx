@@ -12,13 +12,20 @@ import { ToastContainer } from "react-toastify";
 import { listenForegroundNotifications } from "./utils/notification";
 import { useContext, useEffect } from "react";
 import { AuthContext } from "./context/AuthProvider";
+import  UserMovieDetails  from "./pages/UserMovieDetails";
+import  UserSeriesDetails  from "./pages/UserSeriesDetails";
+import SeatBooking from "./Pages/SeatBooking";
+import ScrollToTop from "./Components/ScrollTOp";
+import AdminSeatStructure from './Pages/AdminSeatStructure'
 function App() {
-    const { user, loading } = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
 useEffect(()=>{
  listenForegroundNotifications()
 },[])
+console.log(user)
   return (
     <BrowserRouter>
+    <ScrollToTop/>
       <Routes>
         <Route
           path='/'
@@ -30,16 +37,16 @@ useEffect(()=>{
         />
         <Route path="/signup" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        {/* <Route
-          path="/admin"
-          element={
-            <PrivateRoute roles={["admin"]}>
-              <Admin />
-            </PrivateRoute>
-          }
-        /> */}
-        <Route path="/movie/details/:_id" element={<MoviDetails/>} />
-        <Route path="/series/details/:_id" element={<SeriesDetails />} />
+
+         <Route path="/movie/details/:_id" element={<UserMovieDetails/>}>
+          <Route path="booking" element={<SeatBooking/>} />
+          </Route>
+        <Route path="/series/details/:_id" element={<UserSeriesDetails />}>
+         <Route path="booking" element={<SeatBooking/>} /></Route>
+        <Route path="/admin/movie/details/:_id" element={<MoviDetails/>}>
+        <Route path="show" element={<AdminSeatStructure/>} />
+        </Route>
+        <Route path="/admin/series/details/:_id" element={<SeriesDetails />} />
       </Routes>
       <ToastContainer />
     </BrowserRouter>

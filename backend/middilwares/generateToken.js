@@ -1,13 +1,15 @@
 import jwt from 'jsonwebtoken'
-function generateToken({_id,role}){
+function generateToken({_id,role,subscription,FullName}){
+  const payload= { _id,  role,subscription:subscription,FullName }
+
  const refreshToken = jwt.sign(
-      { _id:_id, role: role },
+     payload,
       process.env.JWT_SECRET,
       { expiresIn: "15d" },
     );
 
     const accessToken=jwt.sign(
-      { _id:_id, role: role },
+      payload,
       process.env.JWT_SECRET,
       { expiresIn: "30m" },
     );

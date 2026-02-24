@@ -15,6 +15,7 @@ try {
   }
   res.status(200).json({ message: "Notification sent" });
 } catch (error) {
+  console.log(error)
     res.status(400).json({ message: "failed to send notification" });
 }
 }  

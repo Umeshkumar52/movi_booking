@@ -7,6 +7,7 @@ export default function AuthProvider({ children }) {
   const isAuth = async () => {
     try {
       const { data } = await instance.get("/auth/");
+      console.log(data)
       setUser(data?.user);
       setLoading(false);
     } catch (error) {

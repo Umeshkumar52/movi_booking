@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Pencil } from "lucide-react";
 import { UpdateMovieMedia } from "../MoviForms";
 import CinematicVideoPreview from "../CinematicVideoPreview";
+import { AuthContext } from "../../context/AuthProvider";
 export default function Media({data,setMovieData}) {
+   const{user} =useContext(AuthContext)
  const [updateMovieMediaModal,setUpdateMovieMediaModal]=useState(null)
   
  return (
@@ -16,13 +18,13 @@ export default function Media({data,setMovieData}) {
           <h2 className="text-2xl font-bold text-gray-800">Media Content</h2>
           <p className="text-gray-500 text-sm">Manage movie video and thumbnail</p>
         </div>
-        <button
+      {user?.role==="admin"&&  <button
           onClick={() => setUpdateMovieMediaModal(data)}
           className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium bg-blue-50 px-4 py-2 rounded-lg transition-colors"
         >
           <Pencil size={18} />
           Edit Media
-        </button>
+        </button>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

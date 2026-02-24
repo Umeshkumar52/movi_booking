@@ -6,18 +6,23 @@ import Trailers from "../components/tabs/Trailers";
 import Cast from "../components/tabs/Cast";
 import Crew from "../components/tabs/Crew";
 import MovieHero from '../Components/MovieHero'
-import { useParams } from "react-router-dom";
+import { Outlet, useParams } from "react-router-dom";
 import instance from "../utils/axiosInstance";
 import { toast } from "react-toastify";
+import SeatBooking from "./SeatBooking";
 export default function MovieDetails() {
   const [activeTab, setActiveTab] = useState("overview");
   const[movieData,setMovieData]=useState(null)
    const{_id}=useParams()
-  
   async function getMovi(){
   try {
     const {data}=await instance.get( `/movies/details?_id=${_id}`)
-   setMovieData(data.message)
+//  console.log(data.message?.currentMovie?.showId)
+//        const rs = await instance.get(
+//         `/movies/show/details/${data?.message?.currentMovie?.showId}`,
+//       );
+// console.log(rs.data.message[0])
+   setMovieData(data.message.currentMovie)
   } catch (error) {
     toast.error(error.response.data.message)
   }
@@ -41,13 +46,17 @@ export default function MovieDetails() {
         return <Overview  data={movieData}/>;
     }
   };
+  console.log(movieData);
+  
   return (
     <div className="min-h-screen bg-slate-950 pb-20">
+         {/* <SeatBooking/> */}
      <MovieHero setMovieData={setMovieData} movie={movieData}/>
       <MovieTabs activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="w-4/5 mx-auto mt-8 bg-slate-900/50 rounded-xl shadow-sm border border-slate-800 min-h-[400px] p-6 text-slate-200">
         {renderTab()}
       </div>
+      <Outlet/>
     </div>
   );
 }

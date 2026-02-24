@@ -35,8 +35,11 @@ export const register = async (req, res) => {
     await newUSer.save();
 
     const { accessToken, refreshToken } = generateToken({
+      FullName:newUSer.FullName,
       _id: newUSer._id,
       role: newUSer.role,
+      FullName:newUSer.FullName,
+      subscription:""
     });
     res.cookie("refreshToken", refreshToken, refreshOptions);
     res.cookie("accessToken", accessToken, accessOptions);
@@ -73,16 +76,21 @@ export const login = async (req, res) => {
       res.status(301).json({
         message: "Invalid password",
       });
+
     }
-    const { accessToken, refreshToken } = generateToken({
+    const payload={
+       FullName:response.FullName,
       _id: response._id,
       role: response.role,
-    });
+      subscription:response?.subscription?.Status||{}
+    }
+   
+    const { accessToken, refreshToken } = generateToken(payload);
     res.cookie("refreshToken", refreshToken, refreshOptions);
     res.cookie("accessToken", accessToken, accessOptions);
 
     return res.status(200).json({
-      message: response,
+      message: payload,
       accessToken: accessToken,
     });
   } catch (error) {
@@ -153,7 +161,7 @@ export const refreshAccessToken = (req, res) => {
     const decode = jwt.verify(refreshToken, process.env.JWT_SECRET);
 
     const accessToken = jwt.sign(
-      { _id: decode._id, role: decode.role },
+      decode,
       process.env.JWT_SECRET,
       {
         expiresIn: "15m",
