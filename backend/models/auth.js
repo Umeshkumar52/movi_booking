@@ -21,7 +21,7 @@ const registerSchema = new mongoose.Schema({
   },
   subscription: {
     Id: String,
-    Expiry: Date,
+    ExpireAt: Date,
     Status: {
       type: String,
       enum: ["active", "expire"],

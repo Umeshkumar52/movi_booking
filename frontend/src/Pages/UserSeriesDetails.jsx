@@ -7,11 +7,11 @@ import EpisodesManagement from "../Components/series/EpisodesManagement";
 import { Outlet, useParams } from "react-router-dom";
 import instance from "../utils/axiosInstance";
 import { toast } from "react-toastify";
-import {  Users, Star, Tv, Info } from "lucide-react";
+import { Users, Star, Tv, Info } from "lucide-react";
 import { AuthContext } from "../context/AuthProvider";
 
 export default function UserSeriesDetails() {
-    const { user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("overview");
   const [seriesData, setSeriesData] = useState(null);
   const [seasonsData, setSeasonsData] = useState([]);
@@ -25,6 +25,23 @@ export default function UserSeriesDetails() {
       setSeasonsData(data.message.seasons);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch series");
+    }
+  }
+
+  function checkSubscriptionExpiry(tabs) {
+    const currentDate = new Date();
+    const expireyDate = new Date(user?.subscription?.ExpireAt || "");
+    if (tabs !== "seasons") {
+      setActiveTab(tabs);
+      return;
+    } else if (
+      expireyDate < currentDate ||
+      user?.subscription?.Status === "expire"
+    ) {
+      alert(`Your subscription has been expired, You cant not access !`);
+      return;
+    }else{
+      setActiveTab(tabs);
     }
   }
 
@@ -149,6 +166,7 @@ export default function UserSeriesDetails() {
       </div>
     );
 
+
   return (
     <div
       ref={containerRef}
@@ -164,13 +182,11 @@ export default function UserSeriesDetails() {
             return (
               <button
                 key={tab.id}
-                onClick={() =>{
-                    if(tab.id==="seasons"&&user?.subscription!=="active"){
-                       window.alert(`You have not any subscription Kindly buy any Subscription!`)
-                       return
-                    }
-                   setActiveTab(tab.id)
-                  }}
+                onClick={() => {
+                  // if(tab.id==="seasons"&&user.role==="user"){
+                  checkSubscriptionExpiry(tab.id);
+                  // }
+                }}
                 className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl font-black text-sm transition-all duration-300 ${
                   activeTab === tab.id
                     ? "bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 translate-y-[-2px]"
@@ -189,7 +205,7 @@ export default function UserSeriesDetails() {
           {renderTab()}
         </div>
       </div>
-         <Outlet/>
+      <Outlet />
     </div>
   );
 }

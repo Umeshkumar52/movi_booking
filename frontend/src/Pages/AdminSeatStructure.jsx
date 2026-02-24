@@ -1,18 +1,18 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Armchair, ChevronLeft, Info } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Armchair, ChevronLeft, Info, Calendar, Clock, Ticket } from "lucide-react";
 import { toast } from "react-toastify";
 import instance from "../utils/axiosInstance";
 import handlePayment from "../utils/handlePayment";
-import BookingSuccess from "../Components/BookingSuccess";
-import { IndianRupee, Tv } from "lucide-react";
+import { IndianRupee } from "lucide-react";
 import { AuthContext } from "../context/AuthProvider";
-import { formatDate,convertTo12Hour } from "../utils/convertToHours";
+import { formatDate, convertTo12Hour } from "../utils/convertToHours";
+
 export default function SeatBooking() {
-   const [searchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const show_id = searchParams.get("showId");
 
-  const{user}=useContext(AuthContext)
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [layout, setLayout] = useState([]);
   const [bookedSeats, setBookedSeats] = useState([]);
@@ -23,7 +23,8 @@ export default function SeatBooking() {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [threaterName, setTheaterName] = useState("");
   const [payment, setPayment] = useState(null);
-const[seatsData,setSeatsData]=useState(null)
+  const [seatsData, setSeatsData] = useState(null);
+
   const totalPrice = selectedSeats.reduce((sum, seatId) => {
     const seatData = layout.find((s) => `${s.row}${s.number}` === seatId);
     return sum + (priceMap[seatData?.type] || 12);
@@ -33,20 +34,20 @@ const[seatsData,setSeatsData]=useState(null)
   async function MovieShow() {
     try {
       setLoading(true);
-     
-           const {data} = await instance.get(
+
+      const { data } = await instance.get(
         `/movies/show/details/${show_id}`,
       );
-      setSeatsData(data?.message[0])
-      console.log(data?.message[0])
+      setSeatsData(data?.message[0]);
+      console.log(data?.message[0]);
       setTheaterName(data?.message[0].theater[0]?.name);
       setShowId(data?.message[0].showId);
       setLayout(data?.message[0].theater[0].layout || []);
       setBookedSeats((prev) => [...prev, ...(data?.message[0].bookedSeats || [])]);
       setPriceMap(data?.message[0].price);
-     
+
     } catch (error) {
-      toast.error( "Something went wrong");
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -90,14 +91,14 @@ const[seatsData,setSeatsData]=useState(null)
     setBookedSeats((prev) => [...prev, ...selectedSeats]);
     setBookingSuccess((prev) => !prev);
     await instance.post(`/notification/send`, {
-      recieverId:user?._id,
+      recieverId: user?._id,
       title: `Congratulations 🍿 Tickets Booked successfully`,
       body: ` "It's showtime! 🎬 Your seats are reserved. Tap to view your digital ticket."`,
     });
-    
+
   }
 
-    useEffect(() => {
+  useEffect(() => {
     MovieShow();
   }, [show_id]);
 
@@ -108,367 +109,219 @@ const[seatsData,setSeatsData]=useState(null)
   }, [payment]);
 
   return (
-    <>
-    return (
-  <div className="min-h-screen w-screen z-50 fixed inset-0 bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#020617] text-slate-200 overflow-auto pb-40">
+    <div className="min-h-screen w-screen z-50 fixed inset-0 bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#020617] text-slate-200 overflow-auto pb-40 font-sans">
+      
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#020617]/80 border-b border-white/5 px-6 py-5 flex items-center justify-between shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 rounded-full hover:bg-cyan-500/10 transition group"
+        >
+          <ChevronLeft className="text-cyan-400 group-hover:-translate-x-1 transition-transform" size={26} />
+        </button>
 
-    {/* HEADER */}
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-black/40 border-b border-white/10 px-6 py-5 flex items-center justify-between">
-      <button
-        onClick={() => navigate(-1)}
-        className="p-2 rounded-full hover:bg-cyan-500/10 transition"
-      >
-        <ChevronLeft className="text-cyan-400" size={26} />
-      </button>
-
-      <div className="text-center">
-        <h1 className="text-xl font-bold tracking-widest uppercase bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-          Select Your Seats
-        </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          {threaterName}
-        </p>
-      </div>
-
-      <Info className="text-slate-500" size={20} />
-    </header>
-
-    <main className="max-w-7xl mx-auto px-6 py-10 space-y-12">
-
-      {/* SCREEN DESIGN */}
-      <div className="flex flex-col items-center">
-        <div className="w-[70%] h-2 bg-gradient-to-r from-transparent via-cyan-400 to-transparent rounded-full shadow-[0_0_25px_rgba(34,211,238,0.7)]" />
-        <div className="w-[80%] h-20 bg-cyan-500/10 rounded-[50%] blur-3xl -mt-4" />
-        <span className="mt-3 text-cyan-400/60 tracking-[0.5em] text-xs uppercase">
-          Screen
-        </span>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-12">
-
-        {/* SEATS GRID */}
-        <div className="lg:col-span-2 flex flex-col items-center space-y-6">
-
-          {Object.keys(groupedRows).sort().map((rowLabel) => (
-            <div key={rowLabel} className="flex items-center gap-6">
-              <span className="text-sm font-semibold text-slate-500 w-6">
-                {rowLabel}
-              </span>
-
-              <div className="flex gap-3">
-                {groupedRows[rowLabel]
-                  .sort((a, b) => a.number - b.number)
-                  .map((seat) => {
-                    const seatId = `${seat.row}${seat.number}`;
-                    const isBooked = bookedSeats.includes(seatId);
-                    const isSelected = selectedSeats.includes(seatId);
-
-                    return (
-                      <button
-                        key={seatId}
-                        disabled={isBooked}
-                        // onClick={() => toggleSeat(seatId)}
-                        className={`relative group transition-all duration-300
-                          ${isBooked && "opacity-30 cursor-not-allowed"}
-                          ${isSelected && "scale-110"}
-                        `}
-                      >
-                        <Armchair
-                          size={30}
-                          className={`
-                            ${isBooked ? "text-slate-700" :
-                              isSelected ? "text-cyan-400 drop-shadow-[0_0_15px_#22d3ee]" :
-                              seat.type === "VIP"
-                                ? "text-amber-500 group-hover:text-amber-400"
-                                : "text-slate-500 group-hover:text-white"}
-                          `}
-                          fill={isSelected ? "currentColor" : "none"}
-                        />
-                        <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] text-slate-400">
-                          {seat.number}
-                        </span>
-                      </button>
-                    );
-                  })}
-              </div>
-            </div>
-          ))}
+        <div className="text-center">
+          <h1 className="text-xl font-black tracking-widest uppercase bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 bg-clip-text text-transparent drop-shadow-lg">
+            Live Seat Status
+          </h1>
+          <p className="text-[10px] text-slate-400 font-medium tracking-[0.2em] uppercase mt-1">
+            {threaterName || "Premium Screen"}
+          </p>
         </div>
 
-        {/* RIGHT SIDE PANEL */}
-        <div className="space-y-8">
+        <button className="p-2 rounded-full hover:bg-white/5 transition text-slate-500 hover:text-cyan-400">
+          <Info size={22} />
+        </button>
+      </header>
 
-          {/* DATE & TIME CARD */}
-          <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 space-y-4 shadow-xl">
-            <h3 className="text-sm uppercase tracking-widest text-slate-400">
-              Show Info
-            </h3>
-
-            <div className="flex justify-between">
-              <div>
-                <p className="text-slate-500 text-xs">Date</p>
-                <p className="font-semibold">
-                  {formatDate(seatsData?.date||
-"2026-02-27T00:00:00.000Z")}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-slate-500 text-xs">Time</p>
-                <p className="font-semibold">
-                  {convertTo12Hour(seatsData?.time||"18:14")}
-                </p>
-              </div>
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-12">
+        
+        {/* TOP STATUS BAR (Optional quick stats) */}
+        {!loading && seatsData && (
+          <div className="flex justify-center gap-8 text-xs font-bold uppercase tracking-widest text-slate-500">
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-400">{seatsData?.totalBookedTickets || 0}</span> Booked
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-emerald-400">{seatsData?.remainingSeats || 0}</span> Available
             </div>
           </div>
+        )}
 
-          {/* LEGEND */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-            <h3 className="text-sm uppercase tracking-widest text-slate-400">
-              Seat Types
-            </h3>
-
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-slate-500 rounded-full" />
-                  Regular
-                </div>
-                <span>₹ {seatsData?.price?.REGULAR}</span>
-              </div>
-
-               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-slate-500 rounded-full" />
-                  Couple
-                </div>
-                <span>₹ {seatsData?.price?.COUPLE}</span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-amber-500 rounded-full" />
-                  VIP
-                </div>
-                <span>₹ {seatsData?.price?.VIP}</span>
-              </div>
-
-              <div className="flex items-center gap-3 text-slate-500">
-                <div className="w-3 h-3 bg-slate-700 rounded-full" />
-                Occupied
-              </div>
-            </div>
-          </div>
-
-          {/* STATS CARD */}
-          <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-400/20 rounded-2xl p-6 shadow-lg">
-            <h3 className="text-sm uppercase tracking-widest text-slate-400 mb-4">
-              Booking Stats
-            </h3>
-
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div>
-                <p className="text-xs text-slate-500">Booked</p>
-                <p className="text-lg font-bold">{seatsData?.totalBookedTickets || 0}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-slate-500">Remaining</p>
-                <p className="text-lg font-bold">{seatsData?.remainingSeats || 0}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-slate-500">Total Seats</p>
-                <p className="text-lg font-bold">{seatsData?.totalSeats || 0}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-slate-500">Revenue</p>
-                <p className="text-lg font-bold text-cyan-400 flex justify-center items-center">
-                  <IndianRupee size={16} />
-                  {seatsData?.totalRevenue || 0}
-                </p>
-              </div>
-            </div>
-          </div>
-
+        {/* SCREEN SECTION */}
+        <div className="flex flex-col items-center mt-4">
+          <div className="w-[85%] h-1.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent rounded-full shadow-[0_0_30px_rgba(34,211,238,0.8)]" />
+          <div className="w-[95%] h-24 bg-gradient-to-b from-cyan-500/20 to-transparent rounded-[50%] blur-3xl -mt-4 pointer-events-none" />
+          <span className="mt-4 text-cyan-400/50 font-black tracking-[0.8em] text-[10px] uppercase drop-shadow">
+            Screen
+          </span>
         </div>
-      </div>
-    </main>
-  </div>
-);
-     
-    </>
+
+        <div className="grid lg:grid-cols-12 gap-10">
+          
+          {/* SEATS GRID CONTAINER */}
+          <div className="lg:col-span-8 flex flex-col items-center justify-center bg-white/[0.02] border border-white/5 rounded-[2rem] p-8 shadow-2xl backdrop-blur-sm overflow-hidden">
+            <div className="w-full overflow-x-auto hide-scrollbar pb-6 flex flex-col items-center gap-6">
+              {Object.keys(groupedRows).sort().map((rowLabel) => (
+                <div key={rowLabel} className="flex items-center gap-8 group/row">
+                  <span className="text-xs font-black text-slate-700 group-hover/row:text-slate-400 transition-colors w-4 text-center">
+                    {rowLabel}
+                  </span>
+
+                  <div className="flex gap-3">
+                    {groupedRows[rowLabel]
+                      .sort((a, b) => a.number - b.number)
+                      .map((seat) => {
+                        const seatId = `${seat.row}${seat.number}`;
+                        const isBooked = bookedSeats.includes(seatId);
+                        
+                        // Styling Logic for Admin View (Read Only)
+                        const iconStyle = isBooked
+                          ? "text-slate-700 opacity-60 drop-shadow-none" // Booked (Grey out)
+                          : seat.type === "VIP"
+                            ? "text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)] group-hover:text-amber-400" // Vacant VIP (Amber Glow)
+                            : "text-slate-400 drop-shadow-[0_0_5px_rgba(148,163,184,0.3)] group-hover:text-white"; // Vacant Regular (Slate Bright)
+
+                        return (
+                          <div
+                            key={seatId}
+                            className="relative flex flex-col items-center transition-all duration-300 group cursor-default"
+                            title={`Seat: ${seatId} | Type: ${seat.type} | Status: ${isBooked ? 'Booked' : 'Available'}`}
+                          >
+                            <Armchair
+                              size={32}
+                              className={`transition-all duration-300 ${iconStyle}`}
+                              fill={isBooked ? "currentColor" : "none"}
+                              strokeWidth={isBooked ? 1 : 1.5}
+                            />
+                            <span className={`absolute -bottom-5 text-[9px] font-bold tracking-wider ${isBooked ? "text-slate-700" : "text-slate-500 group-hover:text-cyan-400 transition-colors"}`}>
+                              {seat.number}
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT SIDE DASHBOARD PANELS */}
+          <div className="lg:col-span-4 space-y-6">
+            
+            {/* SHOW INFO CARD */}
+            <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 shadow-2xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[50px] rounded-full group-hover:bg-indigo-500/20 transition-all" />
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-5 flex items-center gap-2">
+                <Ticket size={14} /> Session Details
+              </h3>
+
+              <div className="grid grid-cols-2 gap-6 relative z-10">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <Calendar size={14} />
+                    <p className="text-[10px] font-bold uppercase tracking-wider">Date</p>
+                  </div>
+                  <p className="font-bold text-sm text-slate-200">
+                    {formatDate(seatsData?.date || "2026-02-27T00:00:00.000Z")}
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <Clock size={14} />
+                    <p className="text-[10px] font-bold uppercase tracking-wider">Time</p>
+                  </div>
+                  <p className="font-bold text-sm text-slate-200">
+                    {convertTo12Hour(seatsData?.time || "18:14")}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* REVENUE & STATS CARD */}
+            <div className="bg-gradient-to-br from-cyan-950/40 to-blue-950/40 backdrop-blur-xl border border-cyan-500/20 rounded-[2rem] p-6 shadow-[0_20px_50px_rgba(6,182,212,0.1)] relative overflow-hidden group">
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-cyan-500/20 blur-[60px] rounded-full group-hover:bg-cyan-500/30 transition-all" />
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400 mb-6 flex items-center gap-2">
+                 Live Statistics
+              </h3>
+
+              <div className="space-y-6 relative z-10">
+                {/* Revenue Highlight */}
+                <div className="flex items-center justify-between border-b border-white/5 pb-5">
+                  <p className="text-xs text-slate-400 font-medium uppercase tracking-widest">Total Revenue</p>
+                  <p className="text-3xl font-black text-white flex justify-center items-center drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                    <IndianRupee size={24} className="mr-1 text-cyan-400" />
+                    {seatsData?.totalRevenue || 0}
+                  </p>
+                </div>
+
+                {/* Sub Stats Grid */}
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                    <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-1">Total</p>
+                    <p className="text-lg font-black text-slate-200">{seatsData?.totalSeats || 0}</p>
+                  </div>
+
+                  <div className="bg-emerald-500/5 rounded-xl p-3 border border-emerald-500/10">
+                    <p className="text-[9px] text-emerald-500/70 uppercase tracking-widest font-bold mb-1">Booked</p>
+                    <p className="text-lg font-black text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">{seatsData?.totalBookedTickets || 0}</p>
+                  </div>
+
+                  <div className="bg-cyan-500/5 rounded-xl p-3 border border-cyan-500/10">
+                    <p className="text-[9px] text-cyan-500/70 uppercase tracking-widest font-bold mb-1">Empty</p>
+                    <p className="text-lg font-black text-cyan-400">{seatsData?.remainingSeats || 0}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* LEGEND CARD */}
+            <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 shadow-xl">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-5">
+                Pricing Legend
+              </h3>
+
+              <div className="space-y-4 text-xs font-medium">
+                <div className="flex justify-between items-center group/legend">
+                  <div className="flex items-center gap-3 text-slate-300">
+                    <Armchair size={18} className="text-slate-400 group-hover/legend:text-white transition-colors" />
+                    Regular Segment
+                  </div>
+                  <span className="font-bold text-white bg-white/10 px-3 py-1 rounded-full text-[10px]">₹ {seatsData?.price?.REGULAR || '-'}</span>
+                </div>
+
+                <div className="flex justify-between items-center group/legend">
+                  <div className="flex items-center gap-3 text-slate-300">
+                    <Armchair size={18} className="text-blue-400 group-hover/legend:text-blue-300 transition-colors" />
+                    Couple Segment
+                  </div>
+                  <span className="font-bold text-white bg-white/10 px-3 py-1 rounded-full text-[10px]">₹ {seatsData?.price?.COUPLE || '-'}</span>
+                </div>
+
+                <div className="flex justify-between items-center group/legend">
+                  <div className="flex items-center gap-3 text-amber-500">
+                    <Armchair size={18} className="text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.5)] group-hover/legend:text-amber-400 transition-colors" />
+                    VIP Segment
+                  </div>
+                  <span className="font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full text-[10px]">₹ {seatsData?.price?.VIP || '-'}</span>
+                </div>
+                
+                <div className="h-px w-full bg-white/5 my-2" />
+
+                <div className="flex items-center justify-between opacity-60">
+                  <div className="flex items-center gap-3 text-slate-500">
+                    <Armchair size={18} className="text-slate-700" fill="currentColor" />
+                    Occupied Seat
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-600">Unavailable</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </main>
+    </div>
   );
-}
-
-
- {/* <div className="min-h-screen overflow-auto w-screen z-50 fixed top-0 bg-[#020617] text-slate-200 font-sans pb-32">
-        {/* Cinematic Header */}
-        // <header className="sticky top-0 flex items-center justify-between px-8 py-6 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 border-b border-white/5">
-        //   <button
-        //     onClick={() => navigate(-1)}
-        //     className="p-2 hover:bg-white/10 rounded-full transition-all"
-        //   >
-        //     <ChevronLeft size={24} className="text-cyan-400" />
-        //   </button>
-        //   <div className="text-center">
-        //     <h1 className="text-lg font-bold tracking-widest uppercase">
-        //       Experience Selection
-        //     </h1>
-        //     <p className="text-[10px] text-slate-500 font-medium tracking-[0.2em]">
-        //       PREMIUM THEATER SCREEN 01
-        //     </p>
-        //   </div>
-        //   <Info size={20} className="text-slate-600" />
-        // </header>
-
-//         <main className="w-full h-[90vh] pb-[6rem] flex flex-col justify-center gap-6 overflow-scroll mx-auto mt-12 px-6">
-//           {/* Curved Glow Screen */}
-//           <div className="relative  flex flex-col items-center">
-//             <div className="w-[80%] h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent rounded-full shadow-[0_0_20px_rgba(6,182,212,0.8)]"></div>
-//             <div className="w-[90%] h-20 bg-gradient-to-b from-cyan-500/10 to-transparent rounded-[50%] blur-2xl -mt-2"></div>
-//             <p className="text-[10px] tracking-[0.6em] text-cyan-500/50 uppercase font-black mt-2">
-//               Screen
-//             </p>
-//           </div>
-//           <div className="flex flex-col lg:flex-row justify-evenly">
-//           {/* Dynamic Seats Grid */}
-//           <div className="hide-scrollbar flex flex-col items-center gap-6 overflow-x-auto pb-8">
-//             {Object.keys(groupedRows)
-//               .sort()
-//               .map((rowLabel) => (
-//                 <div key={rowLabel} className="flex items-center gap-8 group">
-//                   <span className="w-4 text-[11px] font-black text-slate-700 group-hover:text-slate-400 transition-colors">
-//                     {rowLabel}
-//                   </span>
-//                   <div className="flex gap-3">
-//                     {groupedRows[rowLabel]
-//                       .sort((a, b) => a.number - b.number)
-//                       .map((seat) => {
-//                         const seatId = `${seat.row}${seat.number}`;
-//                         const isBooked = bookedSeats.includes(seatId);
-//                         const isSelected = selectedSeats.includes(seatId);
-
-//                         const iconStyle = isBooked
-//                           ? "text-slate-800"
-//                           : isSelected
-//                             ? "text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)] scale-110"
-//                             : seat.type === "VIP"
-//                               ? "text-amber-500/80 hover:text-amber-400"
-//                               : "text-slate-600 hover:text-slate-300";
-
-//                         return (
-//                           <button
-//                             key={seatId}
-//                             disabled={isBooked}
-//                             // onClick={() => toggleSeat(seatId)}
-//                             className="relative flex flex-col items-center transition-all duration-300 transform active:scale-90"
-//                           >
-//                             <Armchair
-//                               size={28}
-//                               className={iconStyle}
-//                               fill={isSelected ? "currentColor" : "none"}
-//                               strokeWidth={isSelected ? 1.5 : 2}
-//                             />
-//                             <span
-//                               className={`text-[8px] mt-1 font-bold ${isSelected ? "text-cyan-400" : "text-slate-700"}`}
-//                             >
-//                               {seat.number}
-//                             </span>
-//                           </button>
-//                         );
-//                       })}
-//                   </div>
-//                 </div>
-//               ))}
-//           </div>
-
-//         <div className="flex flex-col gap-8" >
-             
-//              {/* date and time */}
-//              <div className="flex gap-8">
-//               <div className=" flex flex-col gap-4">
-//                <p>Date</p>
-//                <span>14 july 2026</span>
-//               </div>
-//                <div className=" flex flex-col gap-4">
-//                <p>Time</p>
-//                <span>07 :40 AM</span>
-//               </div>
-//              </div>
-
-//           {/* Legend */}
-//           <div className="flex justify-center gap-8 mt-12 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-//            <div className="flex gap-2 justify-center items-center">
-//              <div className="flex items-center gap-2">
-//               <div className="w-2 h-2 bg-slate-600 rounded-full" /> Regular
-             
-//             </div>
-//              <span>{seatsData?.price?.REGULAR}</span>
-//            </div>
-//           <div className="flex gap-2 justify-center items-center">
-//               <div className="flex  items-center gap-2">
-//               <div className="w-2 h-2 bg-amber-500 rounded-full" />
-//               VIP
-//             </div>
-//             <p>{seatsData?.price.VIP}</p>
-//           </div>
-//             <div className="flex items-center gap-2">
-//               <div className="w-2 h-2 bg-slate-800 rounded-full" /> Occupied
-//             </div>
-//             {/* <div className="flex items-center gap-2">
-//               <div className="w-2 h-2 bg-cyan-400 shadow-[0_0_8px_#22d3ee] rounded-full" />{" "}
-//               Selected
-//             </div> */}
-//           </div>
-
-//           {/* Bottom Floating Checkout Bar */}
-//           <div className="w-full flex justify-center items-center">
-//             <footer className="w-full bottom-6 flex items-center justify-between  max-w-xl bg-slate-900/90 backdrop-blur-2xl border border-white/5 rounded-[2rem] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50">
-//               <div className="pl-4  flex flex-col justify-center items-center">
-//                 <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">
-//                   Selected Seats
-//                 </p>
-//                 <h2 className="text-white text-lg font-black truncate max-w-[150px]">
-//                  {seatsData?.
-// totalBookedTickets
-// ||0}
-//                 </h2>
-//               </div>
-//               <div className="pl-4  flex flex-col justify-center items-center">
-//                 <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">
-//                   Total Seats
-//                 </p>
-//                 <h2 className="text-white text-lg font-black truncate max-w-[150px]">
-//                  {seatsData?.
-// totalSeats
-// ||0}
-//                 </h2>
-//               </div>
-//               <div className="px-8 flex flex-col justify-center items-center ">
-//                 <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">
-//                   Selected Seats
-//                 </p>
-//                 <h2 className="text-white text-lg font-black truncate max-w-[150px]">
-//                  {seatsData?.
-// remainingSeats
-// ||0}
-//                 </h2>
-//               </div>
-//                 <div className="flex-1">
-//                 <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">
-//                   Collected Amount
-//                 </p>
-//                 <h2 className="text-cyan-400 flex items-center text-2xl font-black">
-//                   <IndianRupee />
-//                   {seatsData?.totalRevenue||0}
-//                 </h2>
-//               </div>
-             
-//             </footer>
-//           </div>
-//          </div>
-//           </div>
-//         </main>
-      // </div> 
+} 

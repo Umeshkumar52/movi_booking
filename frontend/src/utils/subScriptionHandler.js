@@ -1,7 +1,7 @@
 import instance from '../utils/axiosInstance'
 import { AuthContext } from "../context/AuthProvider";
 import { useContext } from 'react';
-export const subscriptionHandler = async (setPayment) => {
+export const subscriptionHandler = async (setPayment,setUser) => {
 
   const { data } = await instance.post("/payment/subscription-create");
 
@@ -11,11 +11,13 @@ export const subscriptionHandler = async (setPayment) => {
   name:data.message.message|| "Your App Name",
   description:data.message.description|| "Premium Plan",
   handler: async function (response) {
-     console.log(response)
+    
     // After payment success
-    await instance.post("payment/subscription-verify",{
+   const subData= await instance.post("payment/subscription-verify",{
       subscriptionId:data.message.id,
     });
+ console.log(subData)
+     setUser((prev) => ({ ...prev, subscription:subData.data.message  }));
    
     // window.location.reload()
    setPayment(prev=>!prev)

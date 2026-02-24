@@ -44,12 +44,7 @@ function Register() {
       if (permission) {
         generateToken();
       }
-      
-      setUser({
-        _id: data.message?._id,
-        role: data.message?.role,
-      })
-
+      setUser(data.message)
       localStorage.setItem("user", JSON.stringify({ _id: data.message._id, role: data.message.role }))
       toast.success(`${formatText(data.message?.FullName??"User")} Account created successfully!`);
       navigate("/")

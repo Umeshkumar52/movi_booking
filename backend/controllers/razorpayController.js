@@ -124,7 +124,7 @@ export const createSubscription = async (req, res) => {
 export const verifySubscription = async (req, res) => {
   try {
     const { subscriptionId } = req.body;
-
+    const expireAt=new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     const subscription = await razorpay.subscriptions.fetch(subscriptionId);
     // console.log(subscription)
     if (subscription) {
@@ -135,6 +135,7 @@ export const verifySubscription = async (req, res) => {
           $set: {
             "subscription.Id": subscriptionId,
             "subscription.Status": "active",
+            "subscription.ExpireAt":expireAt
           },
         },
         { new: true, runValidators: true },
@@ -143,13 +144,13 @@ export const verifySubscription = async (req, res) => {
         FullName: userData.FullName,
         _id: userData._id,
         role: userData.role,
-        subscription: userData.subscription?.Status,
+        subscription: userData.subscription
       });
       res.cookie("refreshToken", refreshToken, refreshOptions);
       res.cookie("accessToken", accessToken, accessOptions);
       return res.status(200).json({
         success: true,
-        message: "Subscription Activated",
+        message:userData.subscription,
       });
     }
     res.status(400).json({

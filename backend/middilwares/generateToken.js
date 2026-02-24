@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
-function generateToken({_id,role,subscription,FullName}){
-  const payload= { _id,  role,subscription:subscription,FullName }
+function generateToken(payload){
+  // const payload= { _id,  role,subscription:subscription,FullName }
 
  const refreshToken = jwt.sign(
      payload,

@@ -33,18 +33,25 @@ export const register = async (req, res) => {
     const hasedPassword = await bcrypt.hash(Password, 10);
     newUSer.Password = hasedPassword;
     await newUSer.save();
-
-    const { accessToken, refreshToken } = generateToken({
-      FullName:newUSer.FullName,
+  
+      const payload={
+       FullName:newUSer.FullName,
       _id: newUSer._id,
       role: newUSer.role,
-      FullName:newUSer.FullName,
-      subscription:""
-    });
+      subscription:{
+        Id:null,
+        Status:"expire",
+        ExpireAt:null,
+
+      }
+    }
+   
+
+    const { accessToken, refreshToken } = generateToken(payload);
     res.cookie("refreshToken", refreshToken, refreshOptions);
     res.cookie("accessToken", accessToken, accessOptions);
     return res.status(200).json({
-      message: newUSer,
+      message: payload,
       accessToken: accessToken,
     });
   } catch (err) {
@@ -82,7 +89,7 @@ export const login = async (req, res) => {
        FullName:response.FullName,
       _id: response._id,
       role: response.role,
-      subscription:response?.subscription?.Status||{}
+      subscription:response?.subscription
     }
    
     const { accessToken, refreshToken } = generateToken(payload);

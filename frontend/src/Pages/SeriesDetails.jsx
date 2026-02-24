@@ -115,6 +115,8 @@ export default function SeriesDetails() {
     }
   };
 
+    
+
   if (!seriesData) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="size-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
