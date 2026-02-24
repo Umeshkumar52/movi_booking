@@ -25,8 +25,8 @@ export default function SeriesHero({ series, setSeriesData }) {
   const [theaterModal, setTheaterModal] = useState(false);
   const [payment, setPayment] = useState(false);
   const navigate = useNavigate();
-   const currentDate = new Date();
-   const expiryDate=new Date(user?.subscription?.ExpireAt||"")
+  const currentDate = new Date();
+  const expiryDate = new Date(user?.subscription?.ExpireAt || "");
   async function postDeleteHandler() {
     if (
       !window.confirm(
@@ -45,7 +45,7 @@ export default function SeriesHero({ series, setSeriesData }) {
 
   async function paymentHandler() {
     try {
-      subscriptionHandler(setPayment,setUser);
+      subscriptionHandler(setPayment, setUser);
     } catch (error) {
       toast.error("Failed to load payment");
     }
@@ -66,10 +66,7 @@ export default function SeriesHero({ series, setSeriesData }) {
     }
   }
 
-
   if (!series) return null;
-
-  
 
   useEffect(() => {
     setData(series);
@@ -200,15 +197,16 @@ export default function SeriesHero({ series, setSeriesData }) {
                 </button>
               )}
 
-              {user?.role === "user" && expiryDate<currentDate|| user?.subscription?.Status==="expire"  &&
-                   (
-                  <button
-                    onClick={paymentHandler}
-                    className="px-8 py-4 bg-slate-900 text-yellow-500 border border-rose-500/20 hover:bg-yellow-500-500 hover:text-white font-black rounded-2xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
-                  >
-                    <Tv /> Buy Subscription
-                  </button>
-                )}
+              {user?.role === "user" && series?.premium ? (
+               expiryDate<currentDate|| user?.subscription?.Status==="expire"&& <button
+                  onClick={paymentHandler}
+                  className="px-8 py-4 bg-slate-900 text-yellow-500 border border-rose-500/20 hover:bg-yellow-500-500 hover:text-white font-black rounded-2xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
+                >
+                  <Tv /> Buy Subscription
+                </button>
+              ) : (
+                ""
+              )}
               <button
                 onClick={() => navigate(-1)}
                 className="group p-4 bg-slate-900 text-slate-400 border border-white/5 hover:border-slate-700 rounded-2xl transition-all active:scale-95 shadow-xl"

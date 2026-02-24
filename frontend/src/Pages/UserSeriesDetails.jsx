@@ -9,7 +9,7 @@ import instance from "../utils/axiosInstance";
 import { toast } from "react-toastify";
 import { Users, Star, Tv, Info } from "lucide-react";
 import { AuthContext } from "../context/AuthProvider";
-
+// sk-e183daa71fe94568ad587ce36658cd55
 export default function UserSeriesDetails() {
   const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("overview");
@@ -29,23 +29,27 @@ export default function UserSeriesDetails() {
   }
 
   function checkSubscriptionExpiry(tabs) {
-    const currentDate = new Date();
-    const expireyDate = new Date(user?.subscription?.ExpireAt || "");
-    if (tabs !== "seasons") {
-      setActiveTab(tabs);
-      return;
-    } else if (
-      expireyDate < currentDate ||
-      user?.subscription?.Status === "expire"
-    ) {
-      alert(`Your subscription has been expired, You cant not access !`);
-      return;
-    }else{
+    if (seriesData.premium) {
+       const currentDate = new Date();
+      const expireyDate = new Date(user?.subscription?.ExpireAt || "");
+      if (tabs !== "seasons") {
+        setActiveTab(tabs);
+        return;
+      } else if (
+        expireyDate < currentDate ||
+        user?.subscription?.Status === "expire"
+      ) {
+        alert(`Your subscription has been expired, You cant not access !`);
+        return;
+      } else {
+        setActiveTab(tabs);
+      }
+    } else {
       setActiveTab(tabs);
     }
   }
 
-  useEffect(() => {
+  useEffect(() =>{
     getSeries();
   }, [_id]);
 
@@ -166,7 +170,7 @@ export default function UserSeriesDetails() {
       </div>
     );
 
-
+  console.log(seriesData);
   return (
     <div
       ref={containerRef}
