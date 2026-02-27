@@ -1,6 +1,12 @@
 import mongoose, { Schema } from "mongoose";
 const moviSchema = new mongoose.Schema({ 
   // common fields in movie and series
+    assignSubAdmin:[
+       {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+    },
+    ],
     main_title: {
       type: String,
       require: true,

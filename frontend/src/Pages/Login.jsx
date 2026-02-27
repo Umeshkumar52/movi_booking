@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import instance from "../utils/axiosInstance";
 import { AuthContext } from "../context/AuthProvider";
-import { generateToken } from "../utils/firebase";
 import { Loader2, Mail, Lock, LogIn } from "lucide-react";
 
 function Login() {
@@ -40,10 +39,6 @@ function Login() {
     try {
       const { data } = await instance.post("/auth/login", loginData);
 
-      if (permission) {
-        generateToken();
-      }
-      
       setUser(data.message);
     
       setLoading(false);

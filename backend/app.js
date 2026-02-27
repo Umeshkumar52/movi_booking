@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 import razorpayRoutes from './routers/razorpayRoutes.js'
 import authenticate from "./middilwares/authenticate.js";
 import notificationRoutes from './routers/notificationRoutes.js'
+import { webhookVerification } from "./controllers/razorpayController.js";
 dotenv.config();
 const app = express();
 database();
@@ -17,7 +18,7 @@ database();
 const PORT = process.env.PORT || 3001;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
+app.use('api/v1/payment/webhook/razorpay',  express.raw({ type: "application/json" }),webhookVerification)
 app.use(express.json());
 app.set("trust proxy",1)
 app.use(cookieParser());

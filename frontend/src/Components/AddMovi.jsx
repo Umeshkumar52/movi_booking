@@ -61,6 +61,7 @@ export default function AddMovi({ toggle, setAddNewMoviToggle, setMovies }) {
 
   function dataChangeHandler(event) {
     const { name, value, type, checked } = event.target;
+    
     if(name==="rating"&&value>10){
       alert("Enter rating between 1 to 10")
       return

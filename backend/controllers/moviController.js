@@ -21,19 +21,31 @@ export const getMovies = async (req, res) => {
     const page = Number(req.params.page || req.query.page) || 1;
     const limit = Number(req.params.limit || req.query.limit) || 10;
     const skipPage = (page - 1) * limit;
-
+   const{role,_id}=req.user
+   if(role==="subAdmin"){
+      const response = await movies
+      .find({assignSubAdmin:_id})
+      .sort({ createdAt: -1, _id: -1 }) // Deterministic sorting
+      .skip(skipPage)
+      .limit(limit)
+      .lean();
+      const documents = await movies.countDocuments({assignSubAdmin:_id});
+     return res.status(200).json({
+      message: { data: response, documents },
+    });
+   }
     const response = await movies
       .find()
       .sort({ createdAt: -1, _id: -1 }) // Deterministic sorting
       .skip(skipPage)
       .limit(limit)
       .lean();
-
     const documents = await movies.countDocuments();
 
     return res.status(200).json({
       message: { data: response, documents },
     });
+
   } catch (err) {
     console.error("Get Movies Error:", err);
     return res.status(500).json({
@@ -159,6 +171,36 @@ export const bookeMovi = async (req, res) => {
   }
 };
 
+export const userAssignToMovie=async(req,res)=>{
+  try {
+      const{_id,user_id}=req.body
+      await movies.updateOne({_id},{
+        $push:{assignSubAdmin:user_id}
+      })
+       return res.status(200).json({
+      message:"Assigned Successfully",
+    });
+  } catch (error) {
+     return res.status(301).json({
+      message: "something went wrong",
+    });
+  }
+}
+export const unAssignToMovie=async(req,res)=>{
+  try {
+      const{_id,user_id}=req.query
+      await movies.updateOne({_id},{
+        $pull:{assignSubAdmin:user_id}
+      })
+       return res.status(200).json({
+      message:"unAssigned Successfully",
+    });
+  } catch (error) {
+     return res.status(301).json({
+      message: "something went wrong",
+    });
+  }
+}
 // Admin Controller
 
 export const create = async (req, res) => {
@@ -252,7 +294,7 @@ export const searchMovi = async (req, res) => {
   try {
     const { SearchKey, Category, status, language, genres, year, premium } =
       req.query;
-    console.log(premium, typeof premium);
+   
     // Build filter conditions from query params
     const filterConditions = [];
     if (Category) filterConditions.push({ Category });

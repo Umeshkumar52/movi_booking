@@ -170,7 +170,7 @@ export default function UserSeriesDetails() {
       </div>
     );
 
-  console.log(seriesData);
+  
   return (
     <div
       ref={containerRef}

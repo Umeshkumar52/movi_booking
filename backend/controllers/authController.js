@@ -7,7 +7,7 @@ const accessOptions = {
   httpOnly: true,
   secure: false,
   sameSite: "lax",
-  maxAge:30* 60 * 1000,
+  maxAge: 30 * 60 * 1000,
 };
 const refreshOptions = {
   httpOnly: true,
@@ -33,19 +33,17 @@ export const register = async (req, res) => {
     const hasedPassword = await bcrypt.hash(Password, 10);
     newUSer.Password = hasedPassword;
     await newUSer.save();
-  
-      const payload={
-       FullName:newUSer.FullName,
+
+    const payload = {
+      FullName: newUSer.FullName,
       _id: newUSer._id,
       role: newUSer.role,
-      subscription:{
-        Id:null,
-        Status:"expire",
-        ExpireAt:null,
-
-      }
-    }
-   
+      subscription: {
+        Id: null,
+        Status: "expire",
+        ExpireAt: null,
+      },
+    };
 
     const { accessToken, refreshToken } = generateToken(payload);
     res.cookie("refreshToken", refreshToken, refreshOptions);
@@ -83,15 +81,14 @@ export const login = async (req, res) => {
       res.status(301).json({
         message: "Invalid password",
       });
-
     }
-    const payload={
-       FullName:response.FullName,
+    const payload = {
+      FullName: response.FullName,
       _id: response._id,
       role: response.role,
-      subscription:response?.subscription
-    }
-   
+      subscription: response?.subscription,
+    };
+
     const { accessToken, refreshToken } = generateToken(payload);
     res.cookie("refreshToken", refreshToken, refreshOptions);
     res.cookie("accessToken", accessToken, accessOptions);
@@ -104,6 +101,49 @@ export const login = async (req, res) => {
     return res.status(301).json({
       message: "Something went wrong !",
     });
+  }
+};
+
+export const searchUser = async (req, res) => {
+  try {
+    let { value } = req.query;
+    value = value.trim();
+
+    const query = isEmail(value)
+      ? { email: value.toLowerCase() }
+      : { fullName: value };
+
+    const existingUser = await user.find(query);
+
+    res.status(200).json({ message: existingUser });
+  } catch (error) {
+    res.status(400).json({ message: "Something went wrong" });
+  }
+};
+
+export const createSubAdmin = async (req, res) => {
+  try {
+    let { _id } = req.body;
+    const existingUser = await user.findByIdAndUpdate(
+      _id,
+      {
+        $set: { role: "subAdmin" },
+      },
+      { new: true },
+    );
+
+    res.status(200).json({ message: existingUser });
+  } catch (error) {
+    res.status(400).json({ message: "Something went wrong" });
+  }
+};
+
+export const SubAdmins = async (req, res) => {
+  try {
+    const subAdmin = await user.find({role:"subAdmin"});
+    res.status(200).json({ message: subAdmin });
+  } catch (error) {
+    res.status(400).json({ message: "Something went wrong" });
   }
 };
 
@@ -142,38 +182,40 @@ export const authme = (req, res) => {
   }
 };
 
-export const updateFmcToken = async (req, res) => {
+export const updateFcmToken = async (req, res) => {
   try {
-    const { fmcToken } = req.body;
+    const { fcmToken } = req.body;
     const { _id } = req.user;
-    if (!_id && !fmcToken) {
+    if (!_id && !fcmToken) {
       return res.status(300).json({
         message: "failed save fcmToken",
       });
     }
-    await user.updateOne({ _id }, { $set: { fcmToken: fmcToken } });
+    await user.updateOne({ _id }, { $set: { fcmToken: fcmToken } });
     res.status(200).json({ message: "Save successfully" });
   } catch (error) {
-    res.status(400).json({ message: "failed to save fmcToken" });
+    res.status(400).json({ message: "failed to save fcmToken" });
   }
 };
 export const refreshAccessToken = (req, res) => {
   try {
     const { refreshToken } = req.cookies;
+
     if (!refreshToken) {
       return res.status(401).json({
         message: "Not Authenticate kindly login",
       });
     }
     const decode = jwt.verify(refreshToken, process.env.JWT_SECRET);
-
+    const { _id, FullName, role, subscription } = decode;
     const accessToken = jwt.sign(
-      decode,
+      { _id, FullName, role, subscription },
       process.env.JWT_SECRET,
       {
         expiresIn: "15m",
       },
     );
+
     res.cookie("accessToken", accessToken, accessOptions);
     res.status(200).json({ accessToken });
   } catch (error) {

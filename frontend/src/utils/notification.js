@@ -4,15 +4,15 @@ import { toast } from "react-toastify";
 
 export const listenForegroundNotifications = () => {
   onMessage(messaging, (payload) => {
-    const { title, body } = payload.data;
-        
+    // console.log("notifaction",payload)
+    const { title, body } = payload?.data||payload.notification;
     if (Notification.permission === "granted" ) {
       navigator.serviceWorker.getRegistration().then((reg) => {
         if (reg) {
-          reg.showNotification(title, { body });
+          reg.showNotification(title,{ body:body });
         }
       }); 
     }
-    toast.success(body);
+    // toast.success(title);
   });
 };

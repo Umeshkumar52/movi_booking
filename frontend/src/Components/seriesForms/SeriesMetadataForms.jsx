@@ -27,6 +27,10 @@ export const EditSeriesBasicInfo = ({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+     if(name==="rating"&&value>10){
+      alert("Enter rating between 1 to 10")
+      return
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 

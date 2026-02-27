@@ -14,13 +14,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
 
-export const generateToken = async () => {
-  const token = await getToken(messaging, {
-    vapidKey:import.meta.env.VITE_VAPID_KAY
-  });
-  
-  // save token in uswer database
-  await instance.patch("/auth/update/fmcToken", {fmcToken:token});
 
-  return token;
+export const generateToken = async (registration) => {
+  try {
+    const token = await getToken(messaging, {
+      vapidKey:import.meta.env.VITE_VAPID_KAY,
+        serviceWorkerRegistration: registration
+    });
+    
+    // save token in uswer database
+    const response = await instance.patch("/auth/update/fcmToken", {fcmToken:token});
+ 
+
+    return token;
+  } catch (error) {
+    console.error("Failed to generate or save FCM token:", error);
+  }
 };

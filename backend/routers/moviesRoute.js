@@ -31,6 +31,8 @@ import {
   createTheaterAndShow,
   getTheaterShowDetails,
   bookings_revenues,
+  userAssignToMovie,
+  unAssignToMovie
 } from "../controllers/moviController.js";
 import allowRole from "../middilwares/allowRole.js";
 
@@ -51,6 +53,8 @@ router.route('/subscription/buy')
 router.post("/theater-show/create", allowRole("admin"),createTheaterAndShow)
 router.get('/theater/show/screen',getTheaterShowDetails)
 router.get('/show/details/:showId',allowRole("admin"),bookings_revenues)
+router.put("/assign", userAssignToMovie);
+router.put("/un-assign", unAssignToMovie);
 router.post(
   "/create",
   allowRole("admin"),

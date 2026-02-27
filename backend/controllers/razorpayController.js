@@ -4,7 +4,7 @@ import razorpay from "../config/razorpay.js";
 import crypto from "node:crypto";
 import user from "../models/auth.js";
 import generateToken from "../middilwares/generateToken.js";
-
+import Booking from '../models/moviModals/bookingSchema.js'
 const accessOptions = {
   httpOnly: true,
   secure: false,
@@ -83,14 +83,67 @@ export const verifyPayment = async (req, res) => {
   }
 };
 
-export const paymentFailed = async (req, res) => {
+export const webhookVerification= async (req, res) => {
+    try {
+      const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+
+      const signature = req.headers["x-razorpay-signature"];
+
+      const generatedSignature = crypto
+        .createHmac("sha256", webhookSecret)
+        .update(req.body)
+        .digest("hex");
+
+      if (generatedSignature !== signature) {
+        return res.status(400).json({ message: "Invalid signature" });
+      }
+
+      const event = JSON.parse(req.body);
+
+      console.log("Webhook Event:", event.event);
+
+      // 🎯 Payment Success
+      if (event.event === "payment.captured") {
+        const payment = event.payload.payment.entity;
+
+        const booking = await Booking.findOne({
+          razorpay_order_id: payment.id,
+        });
+
+        if (booking && booking.status !== "confirmed") {
+          booking.bookingStatus = "CONFIRMED";
+          booking.razorpay_payment_id = payment.id;
+          booking.paymentStatus="SUCCESS"
+          await booking.save();
+
+          console.log("🎉 Booking Confirmed");
+        }
+      }
+
+      // ❌ Payment Failed
+      if (event.event === "payment.failed") {
+        const payment = event.payload.payment.entity;
+
+        await Booking.updateOne(
+          { razorpay_order_id: payment.order_id },
+          { status: "failed" }
+        );
+      }
+
+      res.status(200).json({ status: "ok" });
+    } catch (error) {
+      console.error("Webhook Error:", error);
+      res.status(500).json({ message: "Server Error" });
+    }
+  }
+export const failedPayment = async (req, res) => {
   try {
     const { razorpay_order_id } = req.body;
     await orderSchema.updateOne(
       { razorpay_order_id },
       { $set: { status: "failed" } },
     );
-    res.status(200).json(order);
+    res.status(200).json({message:"Payment failed"});
   } catch (error) {
     res.status(400).json({
       message: "Failed to create order",

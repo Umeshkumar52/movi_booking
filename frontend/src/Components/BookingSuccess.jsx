@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Ticket, Calendar, Armchair, ArrowRight, ArrowLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
-
+import { IndianRupee, Tv } from "lucide-react";
 const BookingSuccess = ({ isOpen, onClose, details}) => {
   // Trigger confetti when component mounts
   useEffect(() => {
@@ -26,11 +26,11 @@ const BookingSuccess = ({ isOpen, onClose, details}) => {
    
   if (!isOpen) return null;
 
-  // useEffect(()=>{
-  //  setTimeout(() => {
-  //   onClose()
-  //  }, 5000);
-  // },[])
+  useEffect(()=>{
+   setTimeout(() => {
+    onClose()
+   }, 3000);
+  },[])
  
   return (
     <AnimatePresence>
@@ -93,7 +93,7 @@ const BookingSuccess = ({ isOpen, onClose, details}) => {
                   <Calendar className="text-cyan-400" size={20} />
                   <div>
                     <p className="text-[10px] text-slate-500 uppercase font-black tracking-tighter">Price</p>
-                    <p className="text-sm font-bold text-white">${details?.totalPrice}</p>
+                    <p className="flex items-center gap-2 text-2xl font-bold text-white"><IndianRupee/>{details?.totalPrice}</p>
                   </div>
                 </div>
               </div>

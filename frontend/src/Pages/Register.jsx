@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import instance from '../utils/axiosInstance'
 import { AuthContext } from '../context/AuthProvider'
-import { generateToken } from '../utils/firebase'
 import { Loader2, Mail, Lock, UserPlus, User } from "lucide-react";
 
 function Register() {
@@ -41,9 +40,6 @@ function Register() {
     try {
       const { data } = await instance.post("/auth/signup", userData)
       
-      if (permission) {
-        generateToken();
-      }
       setUser(data.message)
       localStorage.setItem("user", JSON.stringify({ _id: data.message._id, role: data.message.role }))
       toast.success(`${formatText(data.message?.FullName??"User")} Account created successfully!`);

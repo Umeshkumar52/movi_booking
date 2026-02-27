@@ -10,6 +10,7 @@ const handlePayment = async (setPayment,amount) => {
     order_id: order.id,
 // Tickets Confirmed! 🍿 You're all set to watch [Movie Title] tonight at [Time]
     handler: async function (response) {
+    
        await instance.post("/payment/verify", response);
        setPayment(response)
      

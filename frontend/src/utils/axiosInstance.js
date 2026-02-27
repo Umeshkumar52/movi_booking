@@ -37,6 +37,7 @@ const setupInterceptors = (axiosInstance) => {
   axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
+      toast.error(error.response?.data?.message || "Something went wrong");
       const originalRequest = error.config;
 
       if (!error.response) {

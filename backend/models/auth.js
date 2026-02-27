@@ -16,7 +16,7 @@ const registerSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["admin", "user"],
+    enum: ["admin", "user","subAdmin"],
     default: "user",
   },
   subscription: {
@@ -39,5 +39,10 @@ const registerSchema = new mongoose.Schema({
     },
   ],
 });
+registerSchema.index({
+  Email:1,
+  role:1,
+  FullName:1
+})
 
 export default mongoose.model("user", registerSchema);
