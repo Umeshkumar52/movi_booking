@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Ticket, Calendar, Armchair, ArrowRight, ArrowLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';

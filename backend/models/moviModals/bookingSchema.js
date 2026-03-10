@@ -19,6 +19,9 @@ const bookingSchema = new mongoose.Schema({
 
   totalAmount: { type: Number, required: true },
   razorpay_payment_id:{
+    type:String
+  },
+   razorpay_order_id:{
     type:String,
     require:true
   },
@@ -30,7 +33,7 @@ const bookingSchema = new mongoose.Schema({
 
   bookingStatus: {
     type: String,
-    enum: ["CONFIRMED", "CANCELLED"],
+    enum: ["CONFIRMED","PENDING", "CANCELLED"],
     default: "CONFIRMED"
   }
 

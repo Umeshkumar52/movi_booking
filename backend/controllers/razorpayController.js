@@ -5,6 +5,10 @@ import crypto from "node:crypto";
 import user from "../models/auth.js";
 import generateToken from "../middilwares/generateToken.js";
 import Booking from '../models/moviModals/bookingSchema.js'
+import { parseTemplate } from "../utils/parseTemplate.js";
+import bookingSchema from "../models/moviModals/bookingSchema.js";
+import sendEmail from "../utils/sendEmail.js";
+// import { emailQueue } from "../utils/emailQueue.js";
 const accessOptions = {
   httpOnly: true,
   secure: false,
@@ -70,6 +74,8 @@ export const verifyPayment = async (req, res) => {
         method,
         description,
       });
+      console.log("Payment verified and recorded in DB");
+
       res.status(200).json({ message: "Payment Successfull" });
     } else {
       res.status(400).json({
@@ -77,6 +83,7 @@ export const verifyPayment = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log(error)
     res.status(400).json({
       message: "Failed to verify payment",
     });
@@ -107,16 +114,45 @@ export const webhookVerification= async (req, res) => {
         const payment = event.payload.payment.entity;
 
         const booking = await Booking.findOne({
-          razorpay_order_id: payment.id,
+          razorpay_order_id: payment.order_id,
+        }).populate("userId").populate({
+          path: "showId",
+          populate: [
+            { path: "movieId", select: "title" },
+            { path: "theaterId", select: "name" }
+          ]
         });
 
-        if (booking && booking.status !== "confirmed") {
+        if (booking && booking.bookingStatus !== "CONFIRMED") {
           booking.bookingStatus = "CONFIRMED";
           booking.razorpay_payment_id = payment.id;
           booking.paymentStatus="SUCCESS"
           await booking.save();
 
           console.log("🎉 Booking Confirmed");
+
+          if (booking.userId?.Email) {
+            const html = parseTemplate("BookingSeat", { 
+               FullName: booking.userId.FullName,
+               _id: booking.userId._id,
+               booking_id: booking._id,
+               updatedAt: new Date(booking.updatedAt).toLocaleString(),
+               bookingStatus: booking.bookingStatus,
+               paymentStatus: booking.paymentStatus,
+               totalAmount: booking.totalAmount,
+               movieName: booking.showId?.movieId?.title || "Movie",
+               theatre: booking.showId?.theaterId?.name || "Theatre",
+               seats: booking.seats,
+               razorpay_payment_id: payment.id, 
+            });
+
+            await sendEmail({
+               message:"",
+               email: booking.userId.Email,
+               subject: "FilmNest - Movi Booking",
+               html,
+            });
+          }
         }
       }
 
@@ -126,10 +162,10 @@ export const webhookVerification= async (req, res) => {
 
         await Booking.updateOne(
           { razorpay_order_id: payment.order_id },
-          { status: "failed" }
+          { $set: { bookingStatus: "FAILED", paymentStatus: "FAILED" } }
         );
       }
-
+      
       res.status(200).json({ status: "ok" });
     } catch (error) {
       console.error("Webhook Error:", error);

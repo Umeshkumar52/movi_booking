@@ -46,8 +46,7 @@ export default function MovieDetails() {
         return <Overview  data={movieData}/>;
     }
   };
-  console.log(movieData);
-  
+ 
   return (
     <div className="min-h-screen bg-slate-950 pb-20">
          {/* <SeatBooking/> */}

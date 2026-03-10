@@ -23,6 +23,7 @@ export default function MovieHero({ movie, setMovieData }) {
   useEffect(() => {
     setData(movie);
   }, [movie]);
+
   return (
     <>
       {updateOverViewModal && (
@@ -102,7 +103,8 @@ export default function MovieHero({ movie, setMovieData }) {
                 Edit Movie
               </button>
 
-              {movie?.showId ? (
+              {data?.premium?
+              movie?.showId ? (
                 <button
                   onClick={() => navigate(`show?showId=${movie?.showId}`)}
                   className="px-8 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg shadow-lg transition-all transform hover:scale-105 flex items-center gap-2"
@@ -132,7 +134,8 @@ export default function MovieHero({ movie, setMovieData }) {
                   </svg>
                   Add Theater Show
                 </button>
-              )}
+              ):""
+              }
 
               <button
                 onClick={postDeleteHandler}

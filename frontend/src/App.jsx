@@ -1,6 +1,8 @@
 import "./App.css";
 import Register from "./Pages/Register";
 import Login from "./Pages/Login";
+import ForgotPassword from "./Pages/ForgotPassword";
+import ResetPassword from "./Pages/ResetPassword";
 import Home from "./Pages/Home";
 import Admin from "./Pages/Admin";
 import MoviDetails from './Pages/MoviDetails'
@@ -63,7 +65,7 @@ window.forceGenerateToken = generateToken;
       <Routes>
         <Route
           path='/'
-          element={
+           element={
             <PrivateRoute roles={["admin", "user"]}>
              {user?.role=="admin"? <Admin/>:<Home />}
             </PrivateRoute>
@@ -71,6 +73,8 @@ window.forceGenerateToken = generateToken;
         />
         <Route path="/signup" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
          <Route path="/movie/details/:_id" element={<UserMovieDetails/>}>
           <Route path="booking" element={<SeatBooking/>} />

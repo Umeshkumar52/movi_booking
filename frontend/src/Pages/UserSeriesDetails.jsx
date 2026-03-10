@@ -36,10 +36,11 @@ export default function UserSeriesDetails() {
         setActiveTab(tabs);
         return;
       } else if (
-        expireyDate < currentDate ||
-        user?.subscription?.Status === "expire"
+        user?.role!=="admin"&&
+       ( expireyDate < currentDate ||
+        user?.subscription?.Status === "expire")
       ) {
-        alert(`Your subscription has been expired, You cant not access !`);
+        alert(`Your have't subscription or expired, You cant not access !`);
         return;
       } else {
         setActiveTab(tabs);

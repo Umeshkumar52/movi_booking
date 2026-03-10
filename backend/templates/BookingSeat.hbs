@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid #ddd;
+    }
+
+    .header {
+      text-align: center;
+      color: #4f46e5;
+    }
+
+    .details {
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+
+    .seat-box {
+      background: #f1f5f9;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: gray;
+      text-align: center;
+    }
+
+    .badge {
+      background: #22c55e;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <h2 class="header">🎬 Booking Confirmed</h2>
+
+    <p>Hello <b>{{FullName}}</b>,</p>
+
+    <p>Your movie booking has been successfully confirmed.</p>
+
+    <div class="details">
+      <p><b>Movie:</b> {{movieName}}</p>
+      <p><b>Theatre:</b> {{theatre}}</p>
+      <p><b>Date:</b> {{updatedAt}}</p>
+      <p><b>Show Time:</b> {{updatedAt}}</p>
+    </div>
+
+    <div class="seat-box">
+      <b>Seats Booked:</b>
+
+      <ul>
+        {{#each seats}}
+        <li>Seat {{this}}</li>
+        {{/each}}
+      </ul>
+    </div>
+
+    <p>
+      <b>Total Amount:</b>
+      ₹{{totalAmount}}
+    </p>
+    <p>
+      <b>Transaction Id:</b>
+      {{razorpay_payment_id}}
+    </p>
+    <p>
+      Booking ID:
+      <span class="badge">{{booking_id}}</span>
+    </p>
+
+    <div class="footer">
+      <p>Please show this email at the theatre entrance.</p>
+      <p>Enjoy your movie 🍿</p>
+    </div>
+
+  </div>
+</body>
+
+</html>

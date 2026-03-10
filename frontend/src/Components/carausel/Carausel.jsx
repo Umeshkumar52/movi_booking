@@ -73,12 +73,15 @@ const Carausel = ({ items }) => {
         >
           {items[currentIndex].type === 'video' ? (
             <video
+              key={items[currentIndex].src}
               src={items[currentIndex].src}
               className="w-full h-full object-cover"
               autoPlay
+             
               loop
               muted
               playsInline
+              webkit-playsinline="true"
             />
           ) : (
             <img

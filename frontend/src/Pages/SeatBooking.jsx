@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Armchair, ChevronLeft, Info } from "lucide-react";
+import { Armchair, ChevronLeft, Info, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import instance from "../utils/axiosInstance";
 import handlePayment from "../utils/handlePayment";
@@ -59,9 +59,10 @@ export default function SeatBooking() {
 
   async function PaymentHandler() {
     try {
-      await handlePayment(setPayment, totalPrice);
+      await handlePayment(setPayment, totalPrice, setLoading);
     } catch (error) {
       toast.error("Failed to load Payment");
+      setLoading(false);
     }
   }
 
@@ -86,20 +87,27 @@ export default function SeatBooking() {
   };
 
   async function handleBooking() {
-    await instance.post("/movies/booking/create", {
-      showId,
-      seats: selectedSeats,
-      razorpay_payment_id: payment.razorpay_payment_id,
-      paymentStatus: "SUCCESS",
-    });
-    setBookedSeats((prev) => [...prev, ...selectedSeats]);
-    setBookingSuccess((prev) => !prev);
-    await instance.post(`/notification/send`, {
-      recieverId:user?._id,
-      title: `Congratulations 🍿 Tickets Booked successfully`,
-      body: ` "It's showtime! 🎬 Your seats are reserved. Tap to view your digital ticket."`,
-    });
-    
+    try {
+      setLoading(true);
+      await instance.post("/movies/booking/create", {
+        showId,
+        seats: selectedSeats,
+        razorpay_payment_id: payment.razorpay_payment_id,
+        paymentStatus: "SUCCESS",
+      });
+      setBookedSeats((prev) => [...prev, ...selectedSeats]);
+      setBookingSuccess((prev) => !prev);
+      await instance.post(`/notification/send`, {
+        recieverId:user?._id,
+        title: `Congratulations 🍿 Tickets Booked successfully`,
+        body: ` "It's showtime! 🎬 Your seats are reserved. Tap to view your digital ticket."`,
+      });
+    } catch (err) {
+      toast.error("Booking failed. Please contact support if amount was deducted.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
     useEffect(() => {
@@ -114,6 +122,12 @@ export default function SeatBooking() {
 
   return (
     <>
+      {loading && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm">
+          <Loader2 size={48} className="text-cyan-400 animate-spin" />
+          <p className="mt-4 text-sm font-bold tracking-widest text-cyan-400 uppercase">Processing...</p>
+        </div>
+      )}
       {bookingSuccess&&
       <BookingSuccess
         isOpen={bookingSuccess}

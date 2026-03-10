@@ -4,6 +4,7 @@ import { toast } from 'react-toastify'
 import instance from '../utils/axiosInstance'
 import { AuthContext } from '../context/AuthProvider'
 import { Loader2, Mail, Lock, UserPlus, User } from "lucide-react";
+import GoogleAuth from '../Authentication/GoogleAuth'
 
 function Register() {
   const navigate = useNavigate()
@@ -77,8 +78,8 @@ function Register() {
           <div className="size-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-500/20">
             <UserPlus className="text-white size-8" />
           </div>
-          <h2 className="text-3xl font-black tracking-tight text-white mb-2">Join the Club</h2>
-          <p className="text-slate-500 text-sm">Create your cinematic account</p>
+          <h2 className="text-3xl font-black tracking-tight text-white mb-2">Join the FilmNest</h2>
+          <p className="text-slate-500 text-sm">Create your filmNest account</p>
         </div>
 
         <form onSubmit={registerHandler} className="w-full space-y-5">
@@ -161,6 +162,7 @@ function Register() {
               <span>Register Now</span>
             )}
           </button>
+           <GoogleAuth/>
         </form>
 
         <div className="mt-8 pt-8 border-t border-white/5 w-full text-center">

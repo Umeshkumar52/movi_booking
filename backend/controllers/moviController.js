@@ -15,6 +15,11 @@ import mongoose from "mongoose";
 import bookingSchema from "../models/moviModals/bookingSchema.js";
 import user from "../models/auth.js";
 import jwt from "jsonwebtoken";
+// import {emailQueue} from '../utils/emailQueue.js'
+import { parseTemplate } from "../utils/parseTemplate.js";
+import sendEmail from "../utils/sendEmail.js";
+
+import eventEmitter from "../config/eventEmiter.js";
 // User Controller
 export const getMovies = async (req, res) => {
   try {
@@ -966,7 +971,7 @@ export const createBooking = async (req, res) => {
   // session.startTransaction();
 
   try {
-    const { showId, seats, razorpay_payment_id } = req.body;
+    const { showId, seats, razorpay_payment_id,razorpay_order_id } = req.body;
     const userId = req.user._id; // from auth middleware
 
     // 1️⃣ Find show
@@ -986,7 +991,6 @@ export const createBooking = async (req, res) => {
 
     // 3️⃣ Calculate total amount
     let totalAmount = 0;
-
     seats.forEach((seat) => {
       const row = seat.charAt(0); // A1 -> A
 
@@ -1005,6 +1009,7 @@ export const createBooking = async (req, res) => {
       seats,
       totalAmount,
       razorpay_payment_id,
+      razorpay_order_id,
       paymentStatus: "SUCCESS",
       bookingStatus: "CONFIRMED",
     });
@@ -1013,19 +1018,55 @@ export const createBooking = async (req, res) => {
     show.bookedSeats.push(...seats);
     await show.save();
 
-    // 6️⃣ Commit transaction
-    // await session.commitTransaction();
-    // session.endSession();
+    // Populate show details to send in email
+    await show.populate([
+      { path: "movieId", select: "title" },
+      { path: "theaterId", select: "name" }
+    ]);
+
+    const html = parseTemplate("BookingSeat", {
+      FullName: req.user?.FullName,
+      booking_id: booking._id,
+      updatedAt: new Date(booking.createdAt).toLocaleString(),
+      bookingStatus: booking.bookingStatus,
+      paymentStatus: booking.paymentStatus,
+      totalAmount: booking.totalAmount,
+      movieName: show.movieId?.title || "Movie",
+      theatre: show.theaterId?.name || "Theatre",
+      seats: booking.seats,
+      razorpay_payment_id: booking.razorpay_payment_id,
+    });
+    console.log("parsed")
+    try {
+      if (req.user?.Email) {
+        eventEmitter.emit("movie_booking_mail",{
+          message: "",
+          email: req.user.Email,
+          subject: "FilmNest - Movi Booking",
+          html,
+        })
+        await sendEmail({
+          message: "",
+          email: req.user.Email,
+          subject: "FilmNest - Movi Booking",
+          html,
+        });
+        console.log("Booking email sent to user");
+      }
+    } catch (emailErr) {
+      console.error("Failed to send booking email:", emailErr);
+    }
 
     res.status(201).json({
       success: true,
       message: "Booking successful",
-      booking: booking[0],
+      booking: booking,
     });
   } catch (error) {
+    console.log(error)
     // await session.abortTransaction();
     // session.endSession();
-    console.log(error);
+  
     res.status(400).json({
       success: false,
       message: error.message,

@@ -19,6 +19,7 @@ const registerSchema = new mongoose.Schema({
     enum: ["admin", "user","subAdmin"],
     default: "user",
   },
+  googleId:String,
   subscription: {
     Id: String,
     ExpireAt: Date,
@@ -38,6 +39,8 @@ const registerSchema = new mongoose.Schema({
       ref: "movies",
     },
   ],
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 });
 registerSchema.index({
   Email:1,

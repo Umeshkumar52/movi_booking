@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import instance from "../utils/axiosInstance";
 import { AuthContext } from "../context/AuthProvider";
 import { Loader2, Mail, Lock, LogIn } from "lucide-react";
-
+import GoogleAuth from '../Authentication/GoogleAuth'
 function Login() {
   const navigate = useNavigate();
   const [permission, setPermission] = useState(false);
@@ -78,7 +78,7 @@ function Login() {
             <LogIn className="text-white size-8" />
           </div>
           <h2 className="text-3xl font-black tracking-tight text-white mb-2">Back to Action</h2>
-          <p className="text-slate-500 text-sm">Sign in to access your cinematic world</p>
+          <p className="text-slate-500 text-sm">Sign in to access your FilmNest</p>
         </div>
 
         <form onSubmit={loginHandler} className="w-full space-y-6">
@@ -106,9 +106,14 @@ function Login() {
 
             {/* Password Field */}
             <div className="space-y-2 group">
-              <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold ml-1 transition-colors group-focus-within:text-indigo-400">
-                Access Code (Password)
-              </label>
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold ml-1 transition-colors group-focus-within:text-indigo-400">
+                  Access Code (Password)
+                </label>
+                <Link to="/forgot-password" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors font-medium">
+                  Forgot Password?
+                </Link>
+              </div>
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
                   <Lock size={18} />
@@ -140,7 +145,10 @@ function Login() {
               <span>Sign In</span>
             )}
           </button>
+           <GoogleAuth/>
         </form>
+          
+          
 
         <div className="mt-8 pt-8 border-t border-white/5 w-full text-center">
           <p className="text-slate-500 text-sm">
@@ -151,6 +159,7 @@ function Login() {
           </p>
         </div>
       </div>
+     
     </div>
   );
 }

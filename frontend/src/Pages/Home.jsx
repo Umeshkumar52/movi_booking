@@ -8,10 +8,63 @@ import AdminMovieCard from '../Components/AdminMovieCard'
 import SeriesCard from "../Components/series/SeriesCard";
 import instance from "../utils/axiosInstance";
 import { Search, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
-import AdminFilters, { INITIAL_FILTERS } from "../Components/AdminFilters";
 import { AuthContext } from "../context/AuthProvider";
+import HoverFilter, { INITIAL_FILTERS } from "../Components/filter/HoverFilter";
+import Carausel from "../Components/carausel/Carausel";
 
-export default function Admin() {
+const dummyCarouselItems = [
+  {
+    type: 'image',
+    src: 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=2070&auto=format&fit=crop',
+    badge: 'NEW RELEASE',
+    title: 'The Great Exploration',
+    description: 'Discover the unseen world through our latest cinematic masterpiece. Now available in IMAX.',
+    buttonText: 'Book Tickets Now',
+  },
+  {
+    type: 'video',
+    src: 'https://res.cloudinary.com/dupnunjun/video/upload/v1771325920/movies/trailers/media/lxez5w4ontr2ftd53dpn.mp4',
+    badge: 'EXCLUSIVE',
+    title: 'Interstellar Horizons',
+    description: 'A journey beyond the stars. Experience the ultimate sci-fi adventure exclusively on our platform.',
+    buttonText: 'Watch Trailer',
+  },
+   {
+    type: 'image',
+    src: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1925&auto=format&fit=crop',
+    badge: 'SALE LIVE',
+    title: 'Weekend Blockbuster Deals',
+    description: 'Get up to 50% off on all premium seat bookings this weekend. Grab your popcorn!',
+    buttonText: 'Claim Offer',
+  },
+  {
+    type: 'video',
+    src: 'http://localhost:5000/uploads/1771307712482_f752dd7b-cfb9-4cce-afbd-7e310cd533ab.mp4',
+    badge: 'MUST WATCH',
+    title: 'Echoes of the Wild',
+    description: 'Immerse yourself in breathtaking landscapes and the raw beauty of nature like never before.',
+    buttonText: 'Play Now',
+  },
+ 
+  {
+    type: 'video',
+    src: 'https://cdn.pixabay.com/video/2019/11/14/29165-373292415_large.mp4',
+    badge: 'TRENDING',
+    title: 'Cyber City Protocol',
+    description: 'A futuristic thriller where hackers race against time to save the global network.',
+    buttonText: 'Watch Trailer',
+  },
+  {
+    type: 'video',
+     src: 'https://res.cloudinary.com/dupnunjun/video/upload/v1771325920/movies/trailers/media/lxez5w4ontr2ftd53dpn.mp4',
+    badge: 'UPCOMING',
+    title: 'Neon Dreams',
+    description: 'Dive deep into a world of abstract colors and surreal visuals in this upcoming psychological drama.',
+    buttonText: 'Remind Me',
+  }
+];
+
+export default function Home() {
 const {user} = useContext(AuthContext);
   const [movies, setMovies] = useState([]);
   const [page, setPage] = useState(1);
@@ -172,15 +225,21 @@ async function logout() {
 
     </div> */}
 
-      {/* Sidebar + Content Layout */}
-      <div className="relative h-full flex flex-1">
-        {/* Left Sidebar Filters */}
-        <AdminFilters filters={filters} onChange={setFilters} />
+      {/* Layout Content */}
+      <div className="relative h-full flex flex-col pt-[73px]">
+        {/* Top Hover Filters */}
+        <HoverFilter filters={filters} onChange={setFilters} />
 
         {/* Main Content Grid */}
-        <main className="hide-scrollbar flex-1 h-screen pt-[8rem] overflow-auto space-y-[4rem] pt-8">
+        <main className="hide-scrollbar flex-1 h-screen overflow-auto pt-[2rem] md:pt-[3rem]">
           {/* max-w-[1400px]  min-h-[70vh] */}
-          <div className=" mx-auto flex flex-wrap gap-8  lg:px-10 px-6 justify-center min-h-[100vh]">
+          {(!searchQuery && !hasActiveFilters) && (
+            <div className="px-6 lg:px-10 mb-10 max-w-[1600px] mx-auto w-full">
+              <Carausel items={dummyCarouselItems} />
+            </div>
+          )}
+
+          <div className="mx-auto flex flex-wrap gap-8 lg:px-10 px-6 justify-center min-h-[50vh]">
             {movies.length > 0 ? (
               movies.map((item) => (
                 item.Category === "series" ? (
@@ -203,7 +262,7 @@ async function logout() {
 
           {/* navigation tabe */}
          {!searchQuery && (
-        <footer className="mx-auto border-t border-white/5 bg-slate-900/50 backdrop-blur-md">
+        <footer className="mx-auto border-t border-white/5 mt-[4rem] bg-slate-900/50 backdrop-blur-md">
           <div className="max-w-[1600px] mx-auto w-full px-6 lg:px-12 py-8 flex flex-col sm:flex-row justify-between items-center gap-6">
             <div className="text-slate-400 text-sm font-medium order-2 sm:order-1">
               Showing page <span className="text-indigo-400">{page}</span> of <span className="text-indigo-400">{totalDocuments}</span>

@@ -1,5 +1,6 @@
+import "./env.js";
+import "./config/eventEmiter.js"
 import express from "express";
-import dotenv from "dotenv";
 import authRoutes from "./routers/authRoutes.js";
 import moviesRoutes from "./routers/moviesRoute.js";
 import database from "./config/database.js";
@@ -11,10 +12,10 @@ import razorpayRoutes from './routers/razorpayRoutes.js'
 import authenticate from "./middilwares/authenticate.js";
 import notificationRoutes from './routers/notificationRoutes.js'
 import { webhookVerification } from "./controllers/razorpayController.js";
-dotenv.config();
+
 const app = express();
 database();
-
+// console.log( process.cwd())
 const PORT = process.env.PORT || 3001;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
